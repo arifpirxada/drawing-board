@@ -8,6 +8,133 @@ body {
   background-color: #282828;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Manrope", sans-serif;
+}
+
+p {
+  font-family: "Manrope", sans-serif;
+}
+
+input {
+  font-family: "Manrope", sans-serif;
+}
+
 .controls-container {
   background-color: #3f3f3f;
+}
+
+.free-trial {
+  display: flex;
+  padding: 0 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.free-trial-btn {
+  cursor: pointer;
+  border-radius: 36px;
+  padding: 12px 68px;
+  font-family: "Manrope", sans-serif;
+  font-weight: bold;
+  color: #ffffff;
+  border: none;
+  /* background: linear-gradient(to right, rgba(19, 45, 64, 1), rgba(19, 45, 64, 1), rgba(39, 202, 183, 1), rgba(19, 45, 64, 1), rgba(19, 45, 64, 1)); */
+  background: linear-gradient(to right, rgb(222 137 201), rgb(222 137 201), rgb(149 14 128), rgb(222 137 201), rgb(222 137 201));
+  background-size: 200%;
+  animation: gradientShift 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.free-trial-btn:hover {
+  transform: scale(1.06);
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: -115% 0%;
+  }
+  15% {
+    background-position: -115% 0%;
+  }
+  30% {
+    background-position: -150% 0%;
+  }
+  40% {
+    background-position: -150% 0%;
+  }
+  55% {
+    background-position: -180% 0%;
+  }
+  60% {
+    background-position: -180% 0%;
+  }
+  75% {
+    background-position: -150% 0%;
+  }
+  85% {
+    background-position: -150% 0%;
+  }
+  100% {
+    background-position: -115% 0%;
+  }
+}
+
+.form-input {
+  font-family: "Manrope", sans-serif;
+}
+
+.login-form-container {
+  padding: 2rem;
+  background: linear-gradient(90deg, #000428, #000428, #000428, #000428, #000428, #440832, #000428, #000428, #000428);
+  background-size: 200%;
+  background-position: -150% 0%;
+  animation: backgroundShift 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.login-form-container .login-form {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  background-color: #da3ac933;
+}
+@keyframes backgroundShift {
+  0% {
+    background-position: 0% 00%;
+  }
+  55% {
+    background-position: -180% 0%;
+  }
+  100% {
+    background-position:  0% 0%;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .login-form-container {
+    flex-wrap: wrap-reverse;
+    gap: 0 !important;
+    align-items: start;
+  }
+  .login-form-container .login-form {
+    width: 70% !important;
+    /* margin-top: -20rem; */
+  }
+  .login-form-container .login-image {
+    width: 40% !important;
+    margin-top: 2rem;
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .login-form-container .login-form {
+    width: 100% !important;
+    margin-top: 0;
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  .login-form-container .login-image {
+    width: 50% !important;
+    margin-top: 0;
+    margin-bottom: -2rem;
+  }
 }
