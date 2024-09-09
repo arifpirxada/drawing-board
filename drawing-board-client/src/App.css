@@ -21,7 +21,8 @@ input {
 }
 
 .controls-container {
-  background-color: #3f3f3f;
+  background-color: #110f0f;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .free-trial {

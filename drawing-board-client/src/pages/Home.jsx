@@ -1,13 +1,13 @@
 import Controls from "../components/Controls"
 import Editor from "../components/Editor"
-import Sidebar from "../components/Sidebar"
+import Functionality from "../components/Functionality"
 
 function Home() {
     return (
         <>
             <Controls />
             <Editor />
-            {/* <Sidebar /> */}
+            <Functionality />
         </>
     )
 }
