@@ -1,7 +1,9 @@
 import { useContext, useState } from "react"
 import StateContext from "../context/StateContext"
+import { useNavigate } from "react-router-dom";
 
 function Controls() {
+    const navigate = useNavigate();
 
     const {
         setIsMarker,
@@ -151,7 +153,7 @@ function Controls() {
     }
 
     return (
-        <div className={ `controls-container h-[95vh] left-4 top-4 rounded-2xl fixed ${controlWidth} transition-all p-3` }>
+        <div className={ `controls-container h-fit left-4 top-4 rounded-2xl fixed ${controlWidth} transition-all p-3` }>
             { eraserOne && <svg style={ { left: mouse.x - 20, top: mouse.y - 18 } } className="absolute" width="20" height="20">
                 <rect width="20" height="20" fill="white" stroke="white" strokeWidth="1"> </rect>
             </svg> }
@@ -159,9 +161,9 @@ function Controls() {
                 <rect width="15" height="15" fill="white" stroke="white" strokeWidth="1"> </rect>
             </svg> }
             <div onClick={ toggleControls } className="w-6 cursor-pointer h-7 m-auto float-right">
-                <span className="h-1 rounded mb-1 block bg-slate-200"></span>
-                <span className="h-1 rounded mb-1 block bg-slate-200"></span>
-                <span className="h-1 rounded mb-1 block bg-slate-200"></span>
+                <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
+                <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
+                <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
             </div>
             <h2 className={ `text-white mb-3 ${controlWidth == "w-12" ? 'h-0' : ''} font-mono overflow-hidden transition-all select-none` }>Pens</h2>
             <div className="pens mt-12 flex gap-3 justify-center flex-wrap">
@@ -197,7 +199,7 @@ function Controls() {
                 <svg onClick={ () => changeControl("rectangle") } className="cursor-pointer hover:scale-110 transition-all" width="16" height="15">
                     <rect width="15" height="15" fill="none" stroke="white" className={ rectangle ? 'stroke-orange-300' : '' } strokeWidth="1"> </rect>
                 </svg>
-                <svg onClick={ () => changeControl("triangle") } className="cursor-pointer hover:scale-110 transition-all" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                <svg onClick={ () => changeControl("triangle") } className="cursor-pointer hover:scale-110 transition-all" width="16" height="16" xmlnsXlink="http://www.w3.org/2000/svg">
                     <polygon points="0,0 15,15 0,15" fill="none" className={ triangle ? 'stroke-orange-300' : '' } stroke="white" />
                 </svg>
                 <svg onClick={ () => changeControl("circle") } className="cursor-pointer hover:scale-110 transition-all" width="16" height="16">
@@ -205,6 +207,24 @@ function Controls() {
                 </svg>
 
             </div>
+            {controlWidth == "w-44" ? <><button onClick={() => navigate("/view")} type="button" className={`text-white mt-8 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44"? 'px-2 py-2 mr-1': '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}>
+                {controlWidth == "w-44"? "Image" : ""}
+                <svg className={`rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}`} aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                </svg>
+            </button>
+            <button onClick={() => navigate("/view")} type="button" className={`text-white mt-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44"? 'px-2 py-2 mr-1': '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}>
+                {controlWidth == "w-44"? "Text" : ""}
+                <svg className={`rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}`} aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                </svg>
+            </button></> : ""}
+            <button onClick={() => navigate("/view")} type="button" className={`text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 rounded-sm text-sm ${controlWidth == "w-44"? 'px-6 py-2 mt-2': '-mx-[2px] p-2 mt-4'} inline-flex items-center`}>
+                {controlWidth == "w-44"? "View" : ""}
+                <svg className={`rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}`} aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                </svg>
+            </button>
 
         </div>
     )
