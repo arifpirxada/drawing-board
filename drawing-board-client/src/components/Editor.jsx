@@ -1,107 +1,220 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import StateContext from "../context/StateContext";
+import React, { useState, useRef, useContext, useEffect } from 'react';
+import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
+import StateContext from '../context/StateContext';
 
 function Editor() {
-    const canvas = useRef(null);
-    const { isPen,
-        mouse,
-        isDrawing,
-        setMouse,
-        setIsDrawing,
-        lineWidth,
-        isMarker,
-        isPencil,
+    const [lines, setLines] = useState([]);
+    const [rectangles, setRectangles] = useState([]);
+    const stageRef = useRef(null);
+
+    const {
         color,
-        eraserOne,
-        eraserTwo,
-        line,
-        rectangle,
-        triangle,
-        circle
+        lineWidth,
+        setMouse,
+        line, setLine,
+        isDrawing,
+        setIsDrawing,
+        isPen, isMarker, isPencil,
+        rectangle, setRectangle
     } = useContext(StateContext);
-    const [startPoint, setStartPoint] = useState(null);
 
-    useEffect(() => {
-        const canvasElement = canvas.current;
-        const ctx = canvasElement.getContext("2d");
-
-        const draw = () => {
-            if (!isDrawing) return;
-
-            if (isPen || isMarker || isPencil) {
-                ctx.lineTo(mouse.x, mouse.y);
-                ctx.stroke();
-                ctx.moveTo(mouse.x, mouse.y);
-            } else if (eraserOne) {
-                ctx.clearRect(mouse.x - 20, mouse.y - 18, 20, 20);
-            } else if (eraserTwo) {
-                ctx.clearRect(mouse.x - 15, mouse.y - 13, 20, 20);
-            } else if (line && startPoint) {
-                ctx.lineTo(mouse.x, mouse.y);
-                ctx.stroke();
-            }
+    const handleMouseDown = (e) => {
+        setIsDrawing(true);
+        const pos = e.target.getStage().getPointerPosition();
+        if (line || isPen || isMarker || isPencil) {
+            setLines([...lines, { points: [pos.x, pos.y], color, lineWidth }]);
+        } else if (rectangle) {
+            setRectangles([...rectangles, {x: pos.x, y: pos.y, width: 0, height: 0, color}]);
         }
-        draw()
-    }, [isDrawing, isPen, mouse]);
 
+        // Deselect shape
+        if (e.target === stageRef.current) {
+            setSelectedShape(null);
+        }
+    };
+
+    const handleMouseMove = (e) => {
+        const stage = e.target.getStage();
+        const point = stage.getPointerPosition();
+        setMouse({ x: point.x, y: point.y })
+
+        if (isDrawing) {
+            if (isPen || isMarker || isPencil) {
+                const lastLine = lines[lines.length - 1];
+                lastLine.points = lastLine.points.concat([point.x, point.y]);
+                
+                lines.splice(lines.length - 1, 1, lastLine);
+                setLines([...lines]);
+            } else if (line) {
+                const lastLine = lines[lines.length - 1];
+                const updatedPoints = [lastLine.points[0], lastLine.points[1], point.x, point.y];
+        
+                const updatedLine = {
+                    ...lastLine,
+                    points: updatedPoints
+                };
+        
+                const newLines = [...lines];
+                newLines[newLines.length - 1] = updatedLine;
+        
+                setLines(newLines);
+            } else if (rectangle) {
+                const startX = rectangles[rectangles.length - 1].x;
+                const startY = rectangles[rectangles.length - 1].y;
+
+                const width = point.x - startX;
+                const height = point.y - startY;
+
+                const lastRect = rectangles[rectangles.length - 1];
+                const updatedRect = {
+                    ...lastRect,
+                    width,
+                    height
+                };
+        
+                const newRects = [...rectangles];
+                newRects[newRects.length - 1] = updatedRect;
+        
+                setRectangles(newRects);
+            }
+
+        }
+    };
+    
+    const handleMouseUp = () => {
+        setLine(false);
+        setIsDrawing(false)
+    };
+
+    const layerRef = useRef(null);
+
+    const clearPartOfCanvas = (x, y, width, height) => {
+        const layer = layerRef.current;
+        const ctx = layer.getContext();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x, y, width, height);
+        ctx.globalCompositeOperation = 'source-over';
+        layer.batchDraw();
+    };
     useEffect(() => {
-        const ctx = canvas.current.getContext("2d");
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
-        ctx.beginPath();
-        ctx.rect(500, 200, 500, 100);
-        ctx.stroke();
-    }, [color, lineWidth])
-
-    useEffect(() => {
-        const canvasElement = canvas.current;
-        const ctx = canvasElement.getContext("2d");
-
-        canvasElement.width = window.innerWidth;
-        canvasElement.height = window.innerHeight;
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
-        const handleMouseMove = (event) => {
-            const rect = canvasElement.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-
-            setMouse({ x, y });
-        };
-
-        const handleMouseDown = (event) => {
-            const rect = canvasElement.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-
-            setStartPoint({ x, y });
-            setIsDrawing(true);
-            ctx.beginPath();
-        };
-
-        const handleMouseUp = () => {
-            setIsDrawing(false);
-            ctx.beginPath();
-        };
-
-        canvasElement.addEventListener("mousemove", handleMouseMove);
-        canvasElement.addEventListener("mousedown", handleMouseDown);
-        canvasElement.addEventListener("mouseup", handleMouseUp);
-
-        return () => {
-            canvasElement.removeEventListener("mousemove", handleMouseMove);
-            canvasElement.removeEventListener("mousedown", handleMouseDown);
-            canvasElement.removeEventListener("mouseup", handleMouseUp);
-        };
+        const timer = setTimeout(() => {
+            clearPartOfCanvas(330, 450, 200, 200);
+            
+        }, 4000);
+        return () => clearTimeout(timer);
     }, [])
 
+    
+      const [selectedShape, setSelectedShape] = useState(null);
+      const transformerRef = useRef(null);
+
+      const handleSelect = (e) => {
+        const shape = e.target;
+        setSelectedShape(shape);
+      };
+
+      const handleDragStart = (e) => {
+        e.target.moveToTop();
+      };
+
+      useEffect(() => {
+        if (selectedShape && transformerRef.current) {
+          transformerRef.current.nodes([selectedShape]);
+          transformerRef.current.getLayer().batchDraw();
+        }
+      }, [selectedShape]);
+
     return (
-        <div className="canvas-container w-screen h-screen">
-            <canvas ref={ canvas } className="w-full h-full"></canvas>
+        <div className="canvas-container overflow-x-hidden w-screen h-screen relative">
+
+            <Stage
+                width={ window.innerWidth }
+                height={ window.innerHeight }
+                onMouseDown={ handleMouseDown }
+                onMouseMove={ handleMouseMove }
+                onMouseUp={ handleMouseUp }
+                ref={stageRef}
+            >
+                <Layer ref={ layerRef }>
+                    <Rect
+                        x={200}
+                        y={150}
+                        width={100}
+                        height={100}
+                        fill="green"
+                        draggable
+                        onClick={handleSelect}
+                        onTap={handleSelect}
+                        onDragStart={handleDragStart}
+                    />
+                    <Rect
+                        x={500}
+                        y={150}
+                        width={400}
+                        height={100}
+                        fill="red"
+                        draggable
+                        onClick={handleSelect}
+                        onTap={handleSelect}
+                        onDragStart={handleDragStart}
+                    />
+                    <Rect
+                        x={200}
+                        y={300}
+                        width={100}
+                        height={100}
+                        fill="yellow"
+                        draggable
+                        onClick={handleSelect}
+                        onTap={handleSelect}
+                        onDragStart={handleDragStart}
+                    />
+                    { lines.map((line, i) => (
+                        <Line
+                            key={ i }
+                            points={ line.points }
+                            stroke={ line.color }
+                            strokeWidth={ line.lineWidth }
+                            tension={ 0.2 }
+                            lineCap="round"
+                            globalCompositeOperation="source-over"
+                            draggable
+                            onClick={handleSelect}
+                            onTap={handleSelect}
+                            onDragStart={handleDragStart}
+                        />
+                    )) }
+                    { rectangles.map((rect, i) => (
+                        <Rect
+                            key={i}
+                            x={rect.x}
+                            y={rect.y}
+                            width={rect.width}
+                            height={rect.height}
+                            fill={rect.color}
+                            // stroke="black"
+                            strokeWidth={2}
+                            draggable
+                            onClick={handleSelect}
+                            onTap={handleSelect}
+                            onDragStart={handleDragStart}
+                        />
+                    )) }
+                    
+                    {selectedShape && (
+                        <Transformer
+                        ref={transformerRef}
+                        boundBoxFunc={(oldBox, newBox) => {
+                            if (newBox.width < 20 || newBox.height < 20) {
+                            return oldBox;
+                            }
+                            return newBox;
+                        }}
+                        />
+                    )}
+                </Layer>
+            </Stage>
         </div>
     );
 }
