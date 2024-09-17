@@ -3,6 +3,8 @@ import { createContext, useEffect, useState } from 'react';
 const StateContext = createContext();
 
 export const StateProvider = ({ children }) => {
+    const [isMouse, setIsMouse] = useState(false);
+
     // Pen states
     const [isPen, setIsPen] = useState(true);
     const [isMarker, setIsMarker] = useState(false);
@@ -51,7 +53,9 @@ export const StateProvider = ({ children }) => {
             triangle,
             setTriangle,
             circle,
-            setCircle
+            setCircle,
+            isMouse,
+            setIsMouse
         } }>
             { children }
         </StateContext.Provider>
