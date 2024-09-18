@@ -26,6 +26,12 @@ export const StateProvider = ({ children }) => {
     const [triangle, setTriangle] = useState(false);
     const [circle, setCircle] = useState(false);
 
+    // Text
+    const [texts, setTexts] = useState([]);
+
+    // Image
+    const [images, setImages] = useState([]);
+
     return (
         <StateContext.Provider value={ {
             isPen,
@@ -55,7 +61,11 @@ export const StateProvider = ({ children }) => {
             circle,
             setCircle,
             isMouse,
-            setIsMouse
+            setIsMouse,
+            texts,
+            setTexts,
+            images,
+            setImages
         } }>
             { children }
         </StateContext.Provider>

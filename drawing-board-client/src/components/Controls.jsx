@@ -29,7 +29,10 @@ function Controls() {
         setTriangle,
         setCircle,
         isMouse,
-        setIsMouse
+        setIsMouse,
+        texts,
+        setTexts,
+        setImages
     } = useContext(StateContext);
 
     const [controlWidth, setControlWidth] = useState("w-12")
@@ -173,6 +176,48 @@ function Controls() {
         setColor(clr);
     }
 
+    const addText = () => {
+        const txt = prompt("Enter your text");
+        setTexts([...texts, { text: txt, color }])
+
+        setIsPen(false);
+        setIsMarker(false);
+        setIsPencil(false);
+        setEraserOne(false);
+        setEraserTwo(false);
+        setLine(false);
+        setRectangle(false);
+        setTriangle(false);
+        setCircle(false)
+        setIsMouse(true)
+    }
+
+    const handleImages = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const image = new Image();
+                image.src = event.target.result;
+
+                setImages((prevImages) => [...prevImages, image])
+            };
+
+            reader.readAsDataURL(file);
+            setIsPen(false);
+            setIsMarker(false);
+            setIsPencil(false);
+            setEraserOne(false);
+            setEraserTwo(false);
+            setLine(false);
+            setRectangle(false);
+            setTriangle(false);
+            setCircle(false)
+            setIsMouse(true)
+        }
+    }
+
     return (
         <div className={ `controls-container z-[1000] h-fit left-4 top-4 rounded-2xl fixed ${controlWidth} transition-all p-3` }>
             { eraserOne && <svg style={ { left: mouse.x - 20, top: mouse.y - 18 } } className="absolute" width="20" height="20">
@@ -237,13 +282,14 @@ function Controls() {
                 </svg>
 
             </div>
-            { controlWidth == "w-44" ? <><button onClick={ () => navigate("/view") } type="button" className={ `text-white mt-8 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800` }>
+            { controlWidth == "w-44" ? <><label htmlFor="drawing-image" className={ `text-white cursor-pointer mt-8 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800` }>
                 { controlWidth == "w-44" ? "Image" : "" }
                 <svg className={ `rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}` } aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                 </svg>
-            </button>
-                <button onClick={ () => navigate("/view") } type="button" className={ `text-white mt-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800` }>
+                <input type="file" onChange={ handleImages } name="drawing-image" className="hidden" id="drawing-image" />
+            </label>
+                <button onClick={ addText } type="button" className={ `text-white mt-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-2'} text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800` }>
                     { controlWidth == "w-44" ? "Text" : "" }
                     <svg className={ `rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}` } aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />

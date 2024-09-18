@@ -20,7 +20,9 @@ function Editor() {
         rectangle,
         isMouse, setIsMouse,
         triangle,
-        circle
+        circle,
+        texts,
+        images
     } = useContext(StateContext);
 
     const handleMouseDown = (e) => {
@@ -172,15 +174,15 @@ function Editor() {
     const [image, setImage] = useState(null);
 
     useEffect(() => {
-        const loadImage = () => {
-            const img = new window.Image();
-            img.src = 'https://konvajs.org/assets/lion.png'; // Replace with your image URL
-            img.onload = () => {
-                setImage(img);
-            };
-        };
-        loadImage();
-    }, []);
+        // const loadImage = () => {
+        //     const img = new window.Image();
+        //     img.src = 'https://konvajs.org/assets/lion.png'; // Replace with your image URL
+        //     img.onload = () => {
+        //         setImage(img);
+        //     };
+        // };
+        // loadImage();
+    }, [images]);
 
     return (
         <div className="canvas-container overflow-x-hidden w-screen h-screen relative">
@@ -194,29 +196,33 @@ function Editor() {
                 ref={ stageRef }
             >
                 <Layer ref={ layerRef }>
-                    { image && (
+                    { images.map((item, i) => (
                         <Image
-                            image={ image }
-                            x={ 100 }
-                            y={ 100 }
-                            width={ 200 }
-                            height={ 200 }
-                            draggable
+                            key={ i }
+                            image={ item }
+                            x={ window.innerWidth / 2 }
+                            y={ window.innerHeight / 2 }
+                            width={ 300 }
+                            height={ 300 / (item.naturalWidth / item.naturalHeight) }
+                            draggable={ isMouse }
+                            onClick={ handleSelect }
+                            onTap={ handleSelect }
+                            onDragStart={ handleDragStart }
                         />
-                    ) }
-                    <Text
-                        text={ "This is text" }
-                        x={ 300 }
-                        y={ 200 }
-                        fontSize={ 24 }
-                        fill="white"
-                        draggable={ isMouse }
-                        onClick={ handleSelect }
-                        onTap={ handleSelect }
-                        onDragStart={ handleDragStart }
-                    // onDblClick={ handleTextDblClick } // Enable double-click editing
-                    // ref={ textRef }
-                    />
+                    )) }
+                    { texts.map((item, i) => (
+                        <Text
+                            text={ item.text }
+                            x={ window.innerWidth / 2 }
+                            y={ window.innerHeight / 2 }
+                            fontSize={ 24 }
+                            fill={ item.color }
+                            draggable={ isMouse }
+                            onClick={ handleSelect }
+                            onTap={ handleSelect }
+                            onDragStart={ handleDragStart }
+                        />
+                    )) }
                     { circles.map((item, i) => (
                         <Circle
                             key={ i }
