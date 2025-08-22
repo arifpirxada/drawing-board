@@ -2,6 +2,7 @@ import Controls from "../components/Controls"
 import Editor from "../components/Editor"
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import Options from "../components/Options";
 
 
 function Home() {
@@ -36,6 +37,7 @@ function Home() {
         <>
             <Controls />
             <Editor />
+            <Options />
         </>
     )
 }

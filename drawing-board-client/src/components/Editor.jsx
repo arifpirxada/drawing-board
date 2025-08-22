@@ -134,22 +134,22 @@ function Editor() {
 
     const layerRef = useRef(null);
 
-    // const clearPartOfCanvas = (x, y, width, height) => {
-    //     const layer = layerRef.current;
-    //     const ctx = layer.getContext();
-    //     ctx.globalCompositeOperation = 'destination-out';
-    //     ctx.fillStyle = '#000000';
-    //     ctx.fillRect(x, y, width, height);
-    //     ctx.globalCompositeOperation = 'source-over';
-    //     layer.batchDraw();
-    // };
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         clearPartOfCanvas(330, 450, 200, 200);
+    const clearPartOfCanvas = (x, y, width, height) => {
+        const layer = layerRef.current;
+        const ctx = layer.getContext();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x, y, width, height);
+        ctx.globalCompositeOperation = 'source-over';
+        layer.batchDraw();
+    };
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            clearPartOfCanvas(330, 450, 200, 200);
 
-    //     }, 4000);
-    //     return () => clearTimeout(timer);
-    // }, [])
+        }, 4000);
+        return () => clearTimeout(timer);
+    }, [])
 
 
     const [selectedShape, setSelectedShape] = useState(null);
@@ -208,6 +208,8 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
                     )) }
                     { texts.map((item, i) => (
@@ -221,6 +223,8 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
                     )) }
                     { circles.map((item, i) => (
@@ -234,6 +238,8 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
                     )) }
                     { triangles.map((item, i) => (
@@ -246,6 +252,8 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
                     )) }
                     { rectangles.map((rect, i) => (
@@ -262,7 +270,10 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
+
                     )) }
                     { lines.map((line, i) => (
                         <Line
@@ -277,6 +288,8 @@ function Editor() {
                             onClick={ handleSelect }
                             onTap={ handleSelect }
                             onDragStart={ handleDragStart }
+                            onDragMove={ () => console.log("moving...") }
+                            onDragEnd={ () => console.log("eng") }
                         />
                     )) }
 

@@ -250,20 +250,7 @@ function Controls() {
                     <rect width="15" height="15" fill="white" stroke="white" strokeWidth="1"> </rect>
                 </svg>
             </div>
-            <hr className="border-gray-400 mt-6 mb-2" />
-            <h2 className={ `text-white mb-3 ${controlWidth == "w-12" ? 'h-0' : ''} font-mono overflow-hidden transition-all select-none` }>Color</h2>
-            <div className="color flex justify-center gap-3 items-center flex-wrap">
-                <div onClick={ () => changeColor("white") } className={ `${color == 'white' ? 'w-5 h-5' : 'w-4 h-4'} cursor-pointer rounded-full bg-white hover:scale-110 transition-all` }></div>
-                <div onClick={ () => changeColor("red") } className={ `${color == 'red' ? 'w-5 h-5' : 'w-4 h-4'} cursor-pointer rounded-full bg-red-500 hover:scale-110 transition-all` }></div>
-                <div onClick={ () => changeColor("yellow") } className={ `${color == 'yellow' ? 'w-5 h-5' : 'w-4 h-4'} cursor-pointer rounded-full bg-yellow-300 hover:scale-110 transition-all` }></div>
-                <div onClick={ () => changeColor("green") } className={ `${color == 'green' ? 'w-5 h-5' : 'w-4 h-4'} cursor-pointer rounded-full bg-green-500 hover:scale-110 transition-all` }></div>
-            </div>
-            { controlWidth == "w-44" && <div className="flex justify-center"><input
-                type="color"
-                value={ color }
-                onChange={ (e) => setColor(e.target.value) }
-                className="mt-4 cursor-pointer rounded-sm outline-none"
-            /></div> }
+ 
             <hr className="border-gray-400 mt-6 mb-2" />
             <h2 className={ `text-white mb-3 ${controlWidth == "w-12" ? 'h-0' : ''} font-mono overflow-hidden transition-all select-none` }>Shapes</h2>
             <div className="shapes flex justify-center gap-3 items-center flex-wrap">
