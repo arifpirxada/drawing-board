@@ -7,21 +7,22 @@ export const StateProvider = ({ children }) => {
 
     // Pen states
     const [isPen, setIsPen] = useState(true);
-    const [isMarker, setIsMarker] = useState(false);
-    const [isPencil, setIsPencil] = useState(false);
 
     const [mouse, setMouse] = useState({ x: 0, y: 0 });
     const [isDrawing, setIsDrawing] = useState(false);
     
     const [lineWidth, setLineWidth] = useState(5);
+    const [strokeWidth, setStrokeWidth] = useState(5);
     const [color, setColor] = useState("white");
+    const [strokeColor, setStrokeColor] = useState("white");
+    const [bgColor, setBgColor] = useState("#ffffff00");
 
     // Eraser
-    const [eraserOne, setEraserOne] = useState(false);
-    const [eraserTwo, setEraserTwo] = useState(false);
+    const [eraser, setEraser] = useState(false);
 
     // Shapes
     const [line, setLine] = useState(false);
+    const [arrowLine, setArrowLine] = useState(false);
     const [rectangle, setRectangle] = useState(false);
     const [triangle, setTriangle] = useState(false);
     const [circle, setCircle] = useState(false);
@@ -36,24 +37,26 @@ export const StateProvider = ({ children }) => {
         <StateContext.Provider value={ {
             isPen,
             setIsPen,
-            isMarker,
-            setIsMarker,
-            isPencil,
-            setIsPencil,
             mouse,
             isDrawing,
             setMouse,
             setIsDrawing,
             lineWidth,
+            strokeWidth,
             setLineWidth,
+            setStrokeWidth,
             color,
+            strokeColor,
+            bgColor,
             setColor,
-            eraserOne,
-            setEraserOne,
-            eraserTwo,
-            setEraserTwo,
+            setStrokeColor,
+            setBgColor,
+            eraser,
+            setEraser,
             line,
             setLine,
+            arrowLine,
+            setArrowLine,
             rectangle,
             setRectangle,
             triangle,
