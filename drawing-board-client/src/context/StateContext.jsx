@@ -10,7 +10,7 @@ export const StateProvider = ({ children }) => {
 
     const [mouse, setMouse] = useState({ x: 0, y: 0 });
     const [isDrawing, setIsDrawing] = useState(false);
-    
+
     const [lineWidth, setLineWidth] = useState(5);
     const [strokeWidth, setStrokeWidth] = useState(5);
     const [color, setColor] = useState("white");
@@ -29,6 +29,11 @@ export const StateProvider = ({ children }) => {
 
     // Text
     const [texts, setTexts] = useState([]);
+    const [textFont, setTextFont] = useState('Handlee')
+    const [textFontSize, setTextFontSize] = useState(24)
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingText, setEditingText] = useState('');
 
     // Image
     const [images, setImages] = useState([]);
@@ -68,7 +73,11 @@ export const StateProvider = ({ children }) => {
             texts,
             setTexts,
             images,
-            setImages
+            setImages,
+            textFont, setTextFont,
+            textFontSize, setTextFontSize,
+            isEditing, setIsEditing,
+            editingText, setEditingText
         } }>
             { children }
         </StateContext.Provider>

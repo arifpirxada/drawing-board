@@ -4,8 +4,6 @@ import StateContext from "../context/StateContext"
 function Options() {
 
     const {
-        mouse,
-        setIsPen,
         setColor,
         isPen,
         color,
@@ -17,22 +15,16 @@ function Options() {
         lineWidth,
         strokeWidth,
         setStrokeWidth,
-        setEraser,
         eraser,
         line,
         arrowLine,
         rectangle,
         triangle,
         circle,
-        setLine,
-        setRectangle,
-        setTriangle,
-        setCircle,
         isMouse,
-        setIsMouse,
-        texts,
-        setTexts,
-        setImages
+        isEditing,
+        textFont, setTextFont,
+        textFontSize, setTextFontSize,
     } = useContext(StateContext);
 
     const changeOptions = (cmd) => {
@@ -64,11 +56,6 @@ function Options() {
 
     return (
         <div className={ `${(eraser || isMouse) && 'hidden'} controls-container z-[1000] h-fit left-[43%] top-4 rounded-2xl fixed transition-all p-3 flex justify-center items-center gap-4` }>
-            {/* <div className="w-6 cursor-pointer h-5 m-auto float-left">
-                <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
-                <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
-                <span className="h-1 rounded-[1px] block bg-slate-200"></span>
-            </div> */}
 
             { isPen && <div className="mouse-options flex">
                 <div className="color flex justify-center gap-3 items-center">
@@ -114,7 +101,7 @@ function Options() {
                             <img src="/color-choose.png" className="w-6 cursor-pointer" alt="Choose color icon" />
                         </label>
                     </div>
-                    {(!line && !arrowLine) && <div>
+                    { (!line && !arrowLine) && <div>
                         <input
                             type="color"
                             value={ bgColor }
@@ -125,7 +112,7 @@ function Options() {
                         <label htmlFor="color-option-background">
                             <img src="/color-choose.png" className="w-6 cursor-pointer" alt="Choose color icon" />
                         </label>
-                    </div>}
+                    </div> }
                 </div>
                 <div className="gap-4 items-center cursor-pointer h-5 ml-4 flex">
                     <div onClick={ () => handleStrokeWidth(2) } className={ `${strokeWidth == 2 && 'bg-[#5b5a6d]'} h-full flex items-center rounded-sm p-1 hover:bg-[#5b5a6d]` }>
@@ -140,7 +127,7 @@ function Options() {
                 </div>
             </div> }
 
-            <div className="text-options hidden -flex">
+            { isEditing && <div className="text-options flex">
                 <div className="color flex justify-center gap-3 items-center">
                     <div onClick={ () => changeColor("white") } className={ `${color == 'white' && 'scale-125'} transform w-4 h-4 cursor-pointer rounded-full bg-white hover:scale-125 transition-all` }></div>
                     <div onClick={ () => changeColor("yellow") } className={ `${color == 'yellow' && 'scale-125'} transform w-4 h-4 cursor-pointer rounded-full bg-yellow-300 hover:scale-125 transition-all` }></div>
@@ -161,28 +148,28 @@ function Options() {
                     <img src="/text.svg" className="w-6 cursor-pointer" alt="Text icon" />
                 </div>
                 <div className="ml-4">
-                    <select name="select-font" id="select-font" className="cursor-pointer absolute opacity-0 w-5 h-5">
+                    <select onChange={ (e) => setTextFont(e.target.value) } value={ textFont } name="select-font" id="select-font" className="cursor-pointer absolute opacity-0 w-5 h-5">
+                        <option value="Handlee">Handlee</option>
                         <option value="Arial">Arial</option>
-                        <option value="Arial">Open Sans</option>
-                        <option value="Arial">Figtree</option>
+                        <option value="Verdana">Verdana</option>
                     </select>
                     <label htmlFor="select-font" className="cursor-pointer">
                         <svg aria-hidden="true" focusable="false" role="img" viewBox="0 0 24 24" className="" fill="none" width="20" strokeWidth="2" stroke="#fff" strokeLinecap="round" strokeLinejoin="round"><g strokeWidth="1.5"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="4" y1="20" x2="7" y2="20"></line><line x1="14" y1="20" x2="21" y2="20"></line><line x1="6.9" y1="15" x2="13.8" y2="15"></line><line x1="10.2" y1="6.3" x2="16" y2="20"></line><polyline points="5 20 11 4 13 4 20 20"></polyline></g></svg>
                     </label>
                 </div>
                 <div className="ml-4">
-                    <select name="select-font-size" id="select-font-size" className="cursor-pointer absolute opacity-0 w-5 h-5">
+                    <select onChange={ (e) => setTextFontSize(e.target.value) } value={ textFontSize } name="select-font-size" id="select-font-size" className="cursor-pointer absolute opacity-0 w-5 h-5">
                         <option value="12">12</option>
                         <option value="16">16</option>
-                        <option value="20">20</option>
                         <option value="24">24</option>
                         <option value="32">32</option>
+                        <option value="48">48</option>
                     </select>
                     <label htmlFor="select-font-size" className="cursor-pointer">
                         <img src="/font-size.png" className="w-5 cursor-pointer" alt="Text icon" />
                     </label>
                 </div>
-            </div>
+            </div> }
 
 
         </div>

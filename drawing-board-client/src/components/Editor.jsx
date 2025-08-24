@@ -1,355 +1,3 @@
-// import React, { useState, useRef, useContext, useEffect } from 'react';
-// import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
-// import StateContext from '../context/StateContext';
-
-// function Editor() {
-//     const [lines, setLines] = useState([]);
-//     const [arrowLines, setArrowLines] = useState([]);
-//     const [rectangles, setRectangles] = useState([]);
-//     const [triangles, setTriangles] = useState([]);
-//     const [circles, setCircles] = useState([]);
-//     const stageRef = useRef(null);
-
-//     const {
-//         color,
-//         lineWidth,
-//         setMouse,
-//         line, setLine,
-//         arrowLine, setArrowLine,
-//         isDrawing,
-//         setIsDrawing,
-//         isPen,
-//         strokeWidth,
-//         strokeColor,
-//         bgColor,
-//         rectangle,
-//         isMouse, setIsMouse,
-//         triangle,
-//         circle,
-//         texts,
-//         images
-//     } = useContext(StateContext);
-
-//     const handleMouseDown = (e) => {
-//         setIsDrawing(true);
-//         const pos = e.target.getStage().getPointerPosition();
-//         if (line || isPen) {
-//             setLines([...lines, { points: [pos.x, pos.y], color, lineWidth }]);
-//         } else if (rectangle) {
-//             setRectangles([...rectangles, { x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
-//         } else if (triangle) {
-//             setTriangles([...triangles, { points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
-//         } else if (circle) {
-//             setCircles([...circles, { x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
-//         } else if (arrowLine) {
-//             setArrowLines([...arrowLines, { points: [pos.x, pos.y, pos.x, pos.y], color, strokeWidth }]);
-//         }
-
-//         // Deselect shape
-//         if (e.target === stageRef.current) {
-//             setSelectedShape(null);
-//         }
-//     };
-
-//     const handleMouseMove = (e) => {
-//         const stage = e.target.getStage();
-//         const point = stage.getPointerPosition();
-//         setMouse({ x: point.x, y: point.y })
-
-//         if (isDrawing) {
-//             if (isPen) {
-//                 const lastLine = lines[lines.length - 1];
-//                 lastLine.points = lastLine.points.concat([point.x, point.y]);
-
-//                 lines.splice(lines.length - 1, 1, lastLine);
-//                 setLines([...lines]);
-//             } else if (line) {
-//                 const lastLine = lines[lines.length - 1];
-//                 const updatedPoints = [lastLine.points[0], lastLine.points[1], point.x, point.y];
-
-//                 const updatedLine = {
-//                     ...lastLine,
-//                     points: updatedPoints
-//                 };
-
-//                 const newLines = [...lines];
-//                 newLines[newLines.length - 1] = updatedLine;
-
-//                 setLines(newLines);
-//             } else if (rectangle) {
-//                 const startX = rectangles[rectangles.length - 1].x;
-//                 const startY = rectangles[rectangles.length - 1].y;
-
-//                 const width = point.x - startX;
-//                 const height = point.y - startY;
-
-//                 const lastRect = rectangles[rectangles.length - 1];
-//                 const updatedRect = {
-//                     ...lastRect,
-//                     width,
-//                     height
-//                 };
-
-//                 const newRects = [...rectangles];
-//                 newRects[newRects.length - 1] = updatedRect;
-
-//                 setRectangles(newRects);
-//             } else if (triangle) {
-//                 const startX = triangles[triangles.length - 1].points[0];
-//                 const startY = triangles[triangles.length - 1].points[1];
-
-//                 const x = point.x - startX;
-//                 const y = point.y - startY;
-//                 const lastTriangle = triangles[triangles.length - 1];
-//                 const updatedTriangle = { ...lastTriangle, points: [...lastTriangle.points] };
-//                 updatedTriangle.points[3] = updatedTriangle.points[1] + y;
-//                 updatedTriangle.points[4] = updatedTriangle.points[0] + x;
-//                 updatedTriangle.points[5] = updatedTriangle.points[1] + y;
-
-
-//                 const newTriangles = [...triangles];
-//                 newTriangles[newTriangles.length - 1] = updatedTriangle;
-
-//                 setTriangles(newTriangles);
-//             } else if (circle) {
-//                 const startX = circles[circles.length - 1].x;
-//                 const startY = circles[circles.length - 1].y;
-
-//                 const dx = point.x - startX;
-//                 const dy = point.y - startY;
-//                 const newRadius = Math.sqrt(dx * dx + dy * dy); // Pythagorean theorem to calculate distance
-
-//                 const lastCircle = circles[circles.length - 1];
-//                 const updatedCircle = { ...lastCircle, radius: newRadius };
-
-//                 const newCircles = [...circles];
-//                 newCircles[newCircles.length - 1] = updatedCircle;
-
-//                 setCircles(newCircles);
-
-//             } else if (arrowLine) {
-//                 const lastLine = arrowLines[arrowLines.length - 1];
-//                 const updatedPoints = [lastLine.points[0], lastLine.points[1], point.x, point.y];
-
-//                 const updatedLine = {
-//                     ...lastLine,
-//                     points: updatedPoints
-//                 };
-
-//                 const newLines = [...arrowLines];
-//                 newLines[newLines.length - 1] = updatedLine;
-
-//                 setArrowLines(newLines);
-//             }
-//         }
-//     };
-
-//     const handleMouseUp = () => {
-//         if (line) {
-//             setIsMouse(true)
-//         }
-//         setLine(false);
-//         setIsDrawing(false)
-//     };
-
-//     const layerRef = useRef(null);
-
-//     const clearPartOfCanvas = (x, y, width, height) => {
-//         const layer = layerRef.current;
-//         const ctx = layer.getContext();
-//         ctx.globalCompositeOperation = 'destination-out';
-//         ctx.fillStyle = '#000000';
-//         ctx.fillRect(x, y, width, height);
-//         ctx.globalCompositeOperation = 'source-over';
-//         layer.batchDraw();
-//     };
-//     useEffect(() => {
-//         const timer = setTimeout(() => {
-//             clearPartOfCanvas(330, 450, 200, 200);
-
-//         }, 4000);
-//         return () => clearTimeout(timer);
-//     }, [])
-
-
-//     const [selectedShape, setSelectedShape] = useState(null);
-//     const transformerRef = useRef(null);
-
-//     const handleSelect = (e) => {
-//         const shape = e.target;
-//         setSelectedShape(shape);
-//     };
-
-//     const handleDragStart = (e) => {
-//         e.target.moveToTop();
-//     };
-
-//     useEffect(() => {
-//         if (selectedShape && transformerRef.current) {
-//             transformerRef.current.nodes([selectedShape]);
-//             transformerRef.current.getLayer().batchDraw();
-//         }
-//     }, [selectedShape]);
-
-//     const [image, setImage] = useState(null);
-
-//     useEffect(() => {
-//         // const loadImage = () => {
-//         //     const img = new window.Image();
-//         //     img.src = 'https://konvajs.org/assets/lion.png'; // Replace with your image URL
-//         //     img.onload = () => {
-//         //         setImage(img);
-//         //     };
-//         // };
-//         // loadImage();
-//     }, [images]);
-
-//     return (
-//         <div className="canvas-container overflow-x-hidden w-screen h-screen relative">
-
-//             <Stage
-//                 width={ window.innerWidth }
-//                 height={ window.innerHeight }
-//                 onMouseDown={ handleMouseDown }
-//                 onMouseMove={ handleMouseMove }
-//                 onMouseUp={ handleMouseUp }
-//                 ref={ stageRef }
-//             >
-//                 <Layer ref={ layerRef }>
-//                     { images.map((item, i) => (
-//                         <Image
-//                             key={ i }
-//                             image={ item }
-//                             x={ window.innerWidth / 2 }
-//                             y={ window.innerHeight / 2 }
-//                             width={ 300 }
-//                             height={ 300 / (item.naturalWidth / item.naturalHeight) }
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-//                     )) }
-//                     { texts.map((item, i) => (
-//                         <Text
-//                             text={ item.text }
-//                             x={ window.innerWidth / 2 }
-//                             y={ window.innerHeight / 2 }
-//                             fontSize={ 24 }
-//                             fill={ item.color }
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-//                     )) }
-//                     { circles.map((item, i) => (
-//                         <Circle
-//                             key={ i }
-//                             x={ item.x }
-//                             y={ item.y }
-//                             radius={ item.radius }
-//                             fill={ item.fill }
-//                             stroke={ item.stroke }
-//                             strokeWidth={ item.strokeWidth }
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-//                     )) }
-//                     { triangles.map((item, i) => (
-//                         <Line
-//                             key={ i }
-//                             points={ item.points }
-//                             fill={ item.fill }
-//                             stroke={ item.stroke }
-//                             strokeWidth={ item.strokeWidth }
-//                             closed={ true }
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-//                     )) }
-//                     { rectangles.map((rect, i) => (
-//                         <Rect
-//                             key={ i }
-//                             x={ rect.x }
-//                             y={ rect.y }
-//                             width={ rect.width }
-//                             height={ rect.height }
-//                             fill={ rect.fill }
-//                             stroke={ rect.stroke }
-//                             strokeWidth={ rect.strokeWidth }
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-
-//                     )) }
-//                     { arrowLines.map((item, i) => (
-//                         <Arrow
-//                             key={ i }
-//                             points={ item.points }
-//                             pointerLength={ 20 }
-//                             pointerWidth={ 20 }
-//                             fill={ item.color }
-//                             stroke={ item.color }
-//                             strokeWidth={ item.lineWidth }
-//                             draggable={ isMouse }
-//                             onTap={ handleSelect }
-//                             onClick={ handleSelect }
-//                         />
-//                     )) }
-//                     { lines.map((line, i) => (
-//                         <Line
-//                             key={ i }
-//                             points={ line.points }
-//                             stroke={ line.color }
-//                             strokeWidth={ line.lineWidth }
-//                             tension={ 0.2 }
-//                             lineCap="round"
-//                             globalCompositeOperation="source-over"
-//                             draggable={ isMouse }
-//                             onClick={ handleSelect }
-//                             onTap={ handleSelect }
-//                             onDragStart={ handleDragStart }
-//                             onDragMove={ () => console.log("moving...") }
-//                             onDragEnd={ () => console.log("eng") }
-//                         />
-//                     )) }
-
-//                     { selectedShape && (
-//                         <Transformer
-//                             ref={ transformerRef }
-//                             boundBoxFunc={ (oldBox, newBox) => {
-//                                 if (newBox.width < 20 || newBox.height < 20) {
-//                                     return oldBox;
-//                                 }
-//                                 return newBox;
-//                             } }
-//                         />
-//                     ) }
-//                 </Layer>
-//             </Stage>
-//         </div>
-//     );
-// }
-
-// export default Editor;
-
 import { useState, useRef, useContext, useEffect } from 'react';
 import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
 import StateContext from '../context/StateContext';
@@ -361,6 +9,15 @@ function Editor() {
     const [triangles, setTriangles] = useState([]);
     const [circles, setCircles] = useState([]);
     const stageRef = useRef(null);
+
+    // For id
+    const textId = useRef(0);
+    const penId = useRef(0);
+    const lineId = useRef(0);
+    const rectId = useRef(0);
+    const triangleId = useRef(0);
+    const circleId = useRef(0);
+    const arrowId = useRef(0);
 
     // Multi selection
 
@@ -375,12 +32,18 @@ function Editor() {
     const [isSelecting, setIsSelecting] = useState(false);
     const selectionRef = useRef(null);
 
+    const textareaRef = useRef(null);
+
+    // Eraser func
+
+    const [isErasing, setIsErasing] = useState(false);
+
     const {
         color,
         lineWidth,
-        setMouse,
-        line, setLine,
-        arrowLine, setArrowLine,
+        setMouse, mouse,
+        line,
+        arrowLine,
         isDrawing,
         setIsDrawing,
         isPen,
@@ -388,20 +51,80 @@ function Editor() {
         strokeColor,
         bgColor,
         rectangle,
-        isMouse, setIsMouse,
+        isMouse,
         triangle,
         circle,
-        texts,
-        images
+        texts, setTexts,
+        eraser,
+        images, setImages,
+        isEditing, setIsEditing,
+        editingText, setEditingText,
+        setIsMouse,
+        textFont, textFontSize
     } = useContext(StateContext);
 
+    const checkAndDeleteShape = (e) => {
+        const target = e.target;
+        if (!target) return;
+        const stage = target.getStage();
+        const pointerPosition = stage.getPointerPosition();
+
+        const shapes = stage.getAllIntersections(pointerPosition);
+
+        shapes.forEach(shape => {
+            const shapeId = shape.attrs.id;
+            const shapeType = shape.attrs.shapeType;
+
+            switch (shapeType) {
+                case 'image':
+                    setImages(prev => prev.filter(image => image.id !== shapeId));
+                    break;
+                case 'text':
+                    setTexts(prev => prev.filter(text => text.id !== shapeId));
+                    break;
+                case 'circle':
+                    setCircles(prev => prev.filter(circle => circle.id !== shapeId));
+                    break;
+                case 'triangle':
+                    setTriangles(prev => prev.filter(item => item.id !== shapeId));
+                    break;
+                case 'rectangle':
+                    setRectangles(prev => prev.filter(rect => rect.id !== shapeId));
+                    break;
+                case 'arrowline':
+                    setArrowLines(prev => prev.filter(arrow => arrow.id !== shapeId));
+                    break;
+                case 'line':
+                    setLines(prev => prev.filter(line => line.id !== shapeId));
+                    break;
+            }
+        });
+    };
+
     const handleMouseDown = (e) => {
+        const pos = e.target.getStage().getPointerPosition();
+
+        if (isEditing) {
+            textareaRef.current.style.left = `${pos.x}px`
+            textareaRef.current.style.top = `${pos.y}px`
+            textareaRef.current.classList.remove('hidden')
+            setTimeout(() => {
+                textareaRef.current.focus()
+            }, 10)
+            setIsEditing(false)
+        } else if (editingText !== '') {
+            handleSaveText()
+        }
+
+        if (eraser) {
+            setIsErasing(true);
+            checkAndDeleteShape(e);
+            return;
+        }
 
         if (isMouse && e.target === stageRef.current) {
-            const pos = e.target.getStage().getPointerPosition();
-
             setSelectedShape(null);
-            setSelectedShapes([]);
+            setSelectedShapes([]); textareaRef
 
             setIsSelecting(true);
             setSelectionRect({
@@ -415,28 +138,34 @@ function Editor() {
         }
 
         setIsDrawing(true);
-        const pos = e.target.getStage().getPointerPosition();
         if (isPen) {
-            setLines([...lines, { points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
+            setLines([...lines, { id: `pen-${penId.current++}`, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
         } else if (line) {
-            setLines([...lines, { points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setLines([...lines, { id: `line-${lineId.current++}`, points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
         } else if (rectangle) {
-            setRectangles([...rectangles, { x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setRectangles([...rectangles, { id: `rect-${rectId.current++}`, x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
         } else if (triangle) {
-            setTriangles([...triangles, { points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setTriangles([...triangles, { id: `triangle-${triangleId.current++}`, points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
         } else if (circle) {
-            setCircles([...circles, { x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setCircles([...circles, { id: `circle-${circleId.current++}`, x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
         } else if (arrowLine) {
-            setArrowLines([...arrowLines, { points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setArrowLines([...arrowLines, { id: `arrow-${arrowId.current++}`, points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
         }
 
 
     };
 
     const handleMouseMove = (e) => {
+        // Handle Erasing
         const stage = e.target.getStage();
         const point = stage.getPointerPosition();
+
         setMouse({ x: point.x, y: point.y });
+
+        if (eraser & isErasing) {
+            checkAndDeleteShape(e)
+            return;
+        }
 
         // Handle selection rectangle
         if (isSelecting) {
@@ -537,6 +266,9 @@ function Editor() {
     };
 
     const handleMouseUp = () => {
+        if (isErasing) {
+            setIsErasing(false)
+        }
         if (isSelecting) {
             setIsSelecting(false);
 
@@ -580,24 +312,6 @@ function Editor() {
 
     const layerRef = useRef(null);
 
-    const clearPartOfCanvas = (x, y, width, height) => {
-        const layer = layerRef.current;
-        const ctx = layer.getContext();
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x, y, width, height);
-        ctx.globalCompositeOperation = 'source-over';
-        layer.batchDraw();
-    };
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            clearPartOfCanvas(330, 450, 200, 200);
-
-        }, 4000);
-        return () => clearTimeout(timer);
-    }, [])
-
-
     const [selectedShape, setSelectedShape] = useState(null);
     const transformerRef = useRef(null);
 
@@ -631,13 +345,35 @@ function Editor() {
         }
     }, [selectedShape, selectedShapes]);
 
-    const [image, setImage] = useState(null);
+    const handleDragMove = () => { }
+    const handleDragEnd = () => { }
 
-    const handleDragMove = () => {}
-    const handleDragEnd = () => {}
+    const autoResizeTextarea = () => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    };
+
+    const handleTextChange = (e) => {
+        setEditingText(e.target.value)
+        autoResizeTextarea();
+    }
+
+    const handleSaveText = () => {
+        if (editingText !== '') {
+            const rect = textareaRef.current.getBoundingClientRect();
+            setTexts([...texts, { id: `text-${textId.current++}`, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
+        }
+        textareaRef.current.classList.add("hidden")
+        setEditingText('');
+        setIsMouse(true);
+        autoResizeTextarea();
+    }
+
 
     return (
-        <div className="canvas-container overflow-x-hidden w-screen h-screen relative">
+        <div className={ `${eraser ? 'cursor-none' : isMouse ? 'cursor-default' : isEditing ? 'cursor-text' : 'cursor-crosshair'} canvas-container overflow-x-hidden w-screen h-screen relative` }>
 
             <Stage
                 width={ window.innerWidth }
@@ -648,34 +384,46 @@ function Editor() {
                 ref={ stageRef }
             >
                 <Layer ref={ layerRef }>
-                    { images.map((item, i) => (
-                        <Image
-                            key={ i }
-                            className="selectable"
-                            image={ item }
-                            x={ window.innerWidth / 2 }
-                            y={ window.innerHeight / 2 }
-                            width={ 300 }
-                            height={ 300 / (item.naturalWidth / item.naturalHeight) }
-                            draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
-                            onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
-                            onDragEnd={ handleDragEnd }
-                        />
-                    )) }
+                    { images.map((item, i) => {
+                        const imageWidth = 300;
+                        const imageHeight = item.image.naturalHeight
+                            ? imageWidth * (item.image.naturalHeight / item.image.naturalWidth)
+                            : 300;
+                        return (
+                            <Image
+                                key={ item.id }
+                                id={ item.id }
+                                shapeType="image"
+                                className="selectable"
+                                image={ item.image }
+                                x={ (window.innerWidth / 2) - (imageWidth / 2) }  // Center horizontally
+                                y={ (window.innerHeight / 2) - (imageHeight / 2) }  // Center vertically
+                                width={ imageWidth }
+                                height={ imageHeight }
+                                draggable={ isMouse }
+                                onClick={ isMouse ? handleSelect : undefined }
+                                onTap={ isMouse ? handleSelect : undefined }
+                                onDragStart={ handleDragStart }
+                                onDragMove={ handleDragMove }
+                                onDragEnd={ handleDragEnd }
+                            />
+                        )
+                    }) }
                     { texts.map((item, i) => (
                         <Text
+                            key={ item.id }
+                            id={ item.id }
+                            shapeType="text"
                             text={ item.text }
                             className="selectable"
-                            x={ window.innerWidth / 2 }
-                            y={ window.innerHeight / 2 }
-                            fontSize={ 24 }
+                            x={ item.left }
+                            y={ item.top }
+                            fontFamily={ item.font }
+                            fontSize={ item.fontSize }
                             fill={ item.color }
                             draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
+                            onClick={ isMouse ? handleSelect : undefined }
+                            onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ handleDragMove }
                             onDragEnd={ handleDragEnd }
@@ -683,7 +431,9 @@ function Editor() {
                     )) }
                     { circles.map((item, i) => (
                         <Circle
-                            key={ i }
+                            key={ item.id }
+                            id={ item.id }
+                            shapeType="circle"
                             className="selectable"
                             x={ item.x }
                             y={ item.y }
@@ -692,8 +442,8 @@ function Editor() {
                             stroke={ item.stroke }
                             strokeWidth={ item.strokeWidth }
                             draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
+                            onClick={ isMouse ? handleSelect : undefined }
+                            onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ handleDragMove }
                             onDragEnd={ handleDragEnd }
@@ -701,7 +451,9 @@ function Editor() {
                     )) }
                     { triangles.map((item, i) => (
                         <Line
-                            key={ i }
+                            key={ item.id }
+                            id={ item.id }
+                            shapeType="triangle"
                             className="selectable"
                             points={ item.points }
                             fill={ item.fill }
@@ -709,8 +461,8 @@ function Editor() {
                             strokeWidth={ item.strokeWidth }
                             closed={ true }
                             draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
+                            onClick={ isMouse ? handleSelect : undefined }
+                            onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ handleDragMove }
                             onDragEnd={ handleDragEnd }
@@ -718,7 +470,9 @@ function Editor() {
                     )) }
                     { rectangles.map((rect, i) => (
                         <Rect
-                            key={ i }
+                            key={ rect.id }
+                            id={ rect.id }
+                            shapeType="rectangle"
                             className="selectable"
                             x={ rect.x }
                             y={ rect.y }
@@ -728,8 +482,8 @@ function Editor() {
                             stroke={ rect.stroke }
                             strokeWidth={ rect.strokeWidth }
                             draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
+                            onClick={ isMouse ? handleSelect : undefined }
+                            onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ handleDragMove }
                             onDragEnd={ handleDragEnd }
@@ -738,7 +492,9 @@ function Editor() {
                     )) }
                     { arrowLines.map((item, i) => (
                         <Arrow
-                            key={ i }
+                            key={ item.id }
+                            id={ item.id }
+                            shapeType="arrowline"
                             className="selectable"
                             points={ item.points }
                             pointerLength={ 20 }
@@ -747,15 +503,17 @@ function Editor() {
                             stroke={ item.fill }
                             strokeWidth={ item.strokeWidth }
                             draggable={ isMouse }
-                            onTap={ handleSelect }
-                            onClick={ handleSelect }
+                            onTap={ isMouse ? handleSelect : undefined }
+                            onClick={ isMouse ? handleSelect : undefined }
                             onDragMove={ handleDragMove }
                             onDragEnd={ handleDragEnd }
                         />
                     )) }
                     { lines.map((line, i) => (
                         <Line
-                            key={ i }
+                            key={ line.id }
+                            id={ line.id }
+                            shapeType="line"
                             className="selectable"
                             points={ line.points }
                             stroke={ line.fill }
@@ -764,11 +522,11 @@ function Editor() {
                             lineCap="round"
                             globalCompositeOperation="source-over"
                             draggable={ isMouse }
-                            onClick={ handleSelect }
-                            onTap={ handleSelect }
+                            onClick={ isMouse ? handleSelect : undefined }
+                            onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ handleDragMove }
-                            onDragEnd={ handleDragEnd } 
+                            onDragEnd={ handleDragEnd }
                         />
                     )) }
 
@@ -801,6 +559,22 @@ function Editor() {
                     ) }
                 </Layer>
             </Stage>
+            <textarea
+                ref={ textareaRef }
+                className='hidden bg-transparent overflow-hidden resize-x absolute border border-white outline-none py-1 px-3 rounded-sm'
+                value={ editingText }
+                onChange={ handleTextChange }
+                onBlur={ handleSaveText }
+                style={ {
+                    fontFamily: textFont,
+                    fontSize: `${textFontSize}px`,
+                    color: color,
+                    zIndex: 1000,
+                    height: 'auto',
+                    minHeight: '44px',
+                } }
+                rows={ 1 }
+            />
         </div>
     );
 }
