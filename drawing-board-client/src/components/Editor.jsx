@@ -2,13 +2,21 @@ import { useState, useRef, useContext, useEffect } from 'react';
 import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
 import StateContext from '../context/StateContext';
 
+const CELL_WIDTH = 100;
+const CELL_HEIGHT = 100;
+
 function Editor() {
+    const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
+    // const [stageScale, setStageScale] = useState(1);
+
     const [lines, setLines] = useState([]);
     const [arrowLines, setArrowLines] = useState([]);
     const [rectangles, setRectangles] = useState([]);
     const [triangles, setTriangles] = useState([]);
     const [circles, setCircles] = useState([]);
+    const [cursor, setCursor] = useState('cursor-crosshair')
     const stageRef = useRef(null);
+    const textareaRef = useRef(null);
 
     // For id
     const textId = useRef(0);
@@ -32,7 +40,70 @@ function Editor() {
     const [isSelecting, setIsSelecting] = useState(false);
     const selectionRef = useRef(null);
 
-    const textareaRef = useRef(null);
+    // Infinite canvas
+
+    // Calculate buffer based on zoom level
+    // const bufferMultiplier = Math.max(2, 4 / stageScale);
+    // const bufferWidth = window.innerWidth * bufferMultiplier;
+    // const bufferHeight = window.innerHeight * bufferMultiplier;
+
+    // // Calculate visible area bounds
+    // const startX = Math.floor((-stagePos.x - bufferWidth) / CELL_WIDTH) * CELL_WIDTH;
+    // const endX = Math.floor((-stagePos.x + bufferWidth * 2) / CELL_WIDTH) * CELL_WIDTH;
+    // const startY = Math.floor((-stagePos.y - bufferHeight) / CELL_HEIGHT) * CELL_HEIGHT;
+    // const endY = Math.floor((-stagePos.y + bufferHeight * 2) / CELL_HEIGHT) * CELL_HEIGHT;
+
+    // Calculate visible area bounds
+    const startX = Math.floor((-stagePos.x - window.innerWidth) / CELL_WIDTH) * CELL_WIDTH;
+    const endX = Math.floor((-stagePos.x + window.innerWidth * 1.5) / CELL_WIDTH) * CELL_WIDTH;
+    const startY = Math.floor((-stagePos.y - window.innerHeight) / CELL_HEIGHT) * CELL_HEIGHT;
+    const endY = Math.floor((-stagePos.y + window.innerHeight * 1.5) / CELL_HEIGHT) * CELL_HEIGHT;
+
+    // Generate only visible grid components
+    const gridComponents = [];
+    for (let x = startX; x < endX; x += CELL_WIDTH) {
+        for (let y = startY; y < endY; y += CELL_HEIGHT) {
+            gridComponents.push(
+                <Rect
+                    key={ `${x}-${y}` }
+                    x={ x }
+                    y={ y }
+                    width={ CELL_WIDTH }
+                    height={ CELL_HEIGHT }
+                    fill="#282828"
+                    stroke="#a99c9c99"
+                    strokeWidth={ 1 }
+                />
+            );
+        }
+    }
+
+    // const zoomIn = () => {
+    //     const stage = stageRef.current;
+    //     const oldScale = stage.scaleX();
+    //     const newScale = Math.min(2.5, oldScale + 0.25);
+
+    //     stage.scale({ x: newScale, y: newScale });
+    //     setStageScale(newScale);
+    // };
+
+    // const zoomOut = () => {
+    //     const stage = stageRef.current;
+    //     const oldScale = stage.scaleX();
+    //     const newScale = Math.max(0.75, oldScale - 0.25);
+
+    //     stage.scale({ x: newScale, y: newScale });
+    //     setStageScale(newScale);
+    // };
+
+    // const resetZoom = () => {
+    //     const stage = stageRef.current;
+    //     stage.scale({ x: 1, y: 1 });
+    //     stage.position({ x: 0, y: 0 });
+    //     setStageScale(1);
+    //     setStagePos({ x: 0, y: 0 });
+    // };
+
 
     // Eraser func
 
@@ -60,7 +131,8 @@ function Editor() {
         isEditing, setIsEditing,
         editingText, setEditingText,
         setIsMouse,
-        textFont, textFontSize
+        textFont, textFontSize,
+        isPanning
     } = useContext(StateContext);
 
     const checkAndDeleteShape = (e) => {
@@ -101,8 +173,16 @@ function Editor() {
         });
     };
 
+    const getWorldPosition = (stage) => {
+        const pointer = stage.getPointerPosition();
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        return transform.point(pointer);
+    };
+
     const handleMouseDown = (e) => {
-        const pos = e.target.getStage().getPointerPosition();
+        const stage = e.target.getStage();
+        const pos = getWorldPosition(stage);
 
         if (isEditing) {
             textareaRef.current.style.left = `${pos.x}px`
@@ -158,7 +238,7 @@ function Editor() {
     const handleMouseMove = (e) => {
         // Handle Erasing
         const stage = e.target.getStage();
-        const point = stage.getPointerPosition();
+        const point = getWorldPosition(stage);
 
         setMouse({ x: point.x, y: point.y });
 
@@ -371,18 +451,42 @@ function Editor() {
         autoResizeTextarea();
     }
 
+    useEffect(() => {
+        if (eraser) {
+            setCursor('cursor-none')
+        } else if (isMouse) {
+            setCursor('cursor-default')
+        } else if (isEditing) {
+            setCursor('cursor-text')
+        } else if (isPanning) {
+            setCursor('cursor-grab')
+        } else {
+            setCursor('cursor-crosshair')
+        }
+    }, [eraser, isMouse, isEditing, isPanning])
+
 
     return (
-        <div className={ `${eraser ? 'cursor-none' : isMouse ? 'cursor-default' : isEditing ? 'cursor-text' : 'cursor-crosshair'} canvas-container overflow-x-hidden w-screen h-screen relative` }>
-
+        <div className={ `${cursor} canvas-container overflow-x-hidden w-screen h-screen relative` }>
             <Stage
+                ref={ stageRef }
                 width={ window.innerWidth }
                 height={ window.innerHeight }
+                x={ stagePos.x }
+                y={ stagePos.y }
+                // scaleX={ stageScale }
+                // scaleY={ stageScale }
+                draggable={ isPanning }
+                onDragEnd={ (e) => {
+                    setStagePos(e.currentTarget.position());
+                } }
                 onMouseDown={ handleMouseDown }
                 onMouseMove={ handleMouseMove }
                 onMouseUp={ handleMouseUp }
-                ref={ stageRef }
             >
+                <Layer>
+                    { gridComponents }
+                </Layer>
                 <Layer ref={ layerRef }>
                     { images.map((item, i) => {
                         const imageWidth = 300;
@@ -575,6 +679,21 @@ function Editor() {
                 } }
                 rows={ 1 }
             />
+            {/* Zoom Controls */ }
+            {/* <div style={ {
+                position: 'absolute',
+                left: 20,
+                bottom: 20,
+                zIndex: 1000,
+                display: 'flex',
+                gap: '20px',
+                color: "#fff"
+            } }>
+                <button onClick={ zoomIn }>Zoom In (+)</button>
+                <button onClick={ zoomOut }>Zoom Out (-)</button>
+                <button onClick={ resetZoom }>Reset</button>
+                <div>Scale: { stageScale.toFixed(2) }x</div>
+            </div> */}
         </div>
     );
 }

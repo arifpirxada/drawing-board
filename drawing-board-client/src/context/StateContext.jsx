@@ -7,6 +7,7 @@ export const StateProvider = ({ children }) => {
 
     // Pen states
     const [isPen, setIsPen] = useState(true);
+    const [isPanning, setIsPanning] = useState(false);
 
     const [mouse, setMouse] = useState({ x: 0, y: 0 });
     const [isDrawing, setIsDrawing] = useState(false);
@@ -42,6 +43,7 @@ export const StateProvider = ({ children }) => {
         <StateContext.Provider value={ {
             isPen,
             setIsPen,
+            isPanning, setIsPanning,
             mouse,
             isDrawing,
             setMouse,
@@ -77,7 +79,7 @@ export const StateProvider = ({ children }) => {
             textFont, setTextFont,
             textFontSize, setTextFontSize,
             isEditing, setIsEditing,
-            editingText, setEditingText
+            editingText, setEditingText,
         } }>
             { children }
         </StateContext.Provider>

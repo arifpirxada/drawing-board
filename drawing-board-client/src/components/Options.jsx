@@ -5,7 +5,7 @@ function Options() {
 
     const {
         setColor,
-        isPen,
+        isPen, isPanning,
         color,
         strokeColor,
         bgColor,
@@ -26,12 +26,6 @@ function Options() {
         textFont, setTextFont,
         textFontSize, setTextFontSize,
     } = useContext(StateContext);
-
-    const changeOptions = (cmd) => {
-        switch (cmd) {
-
-        }
-    }
 
     const changeColor = (clr) => {
         setColor(clr)
@@ -55,7 +49,7 @@ function Options() {
 
 
     return (
-        <div className={ `${(eraser || isMouse) && 'hidden'} controls-container z-[1000] h-fit left-[43%] top-4 rounded-2xl fixed transition-all p-3 flex justify-center items-center gap-4` }>
+        <div className={ `${(eraser || isMouse || isPanning) && 'hidden'} controls-container z-[1000] h-fit left-[43%] top-4 rounded-2xl fixed transition-all p-3 flex justify-center items-center gap-4` }>
 
             { isPen && <div className="mouse-options flex">
                 <div className="color flex justify-center gap-3 items-center">

@@ -7,10 +7,9 @@ function Controls() {
 
     const {
         mouse,
+        isPanning, setIsPanning,
         setIsPen,
-        setColor,
         isPen,
-        color,
         setEraser,
         eraser,
         line,
@@ -25,8 +24,6 @@ function Controls() {
         setCircle,
         isMouse,
         setIsMouse,
-        texts,
-        setTexts,
         setImages,
         setIsEditing,
     } = useContext(StateContext);
@@ -45,102 +42,55 @@ function Controls() {
         }
     }
 
-    const changeControl = (cmd) => {
-        switch (cmd) {
-            case "pen":
-                setIsPen(true);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "eraser":
-                setIsPen(false);
-                setEraser(true);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "line":
-                setIsPen(false);
-                setEraser(false);
-                setLine(true);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "arrowLine":
-                setIsPen(false);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(true);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "rectangle":
-                setIsPen(false);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(true);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "triangle":
-                setIsPen(false);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(true);
-                setCircle(false)
-                setIsMouse(false)
-                break;
-            case "circle":
-                setIsPen(false);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(true)
-                setIsMouse(false)
-                break;
-            case "mouse":
-                setIsPen(false);
-                setEraser(false);
-                setLine(false);
-                setArrowLine(false);
-                setRectangle(false);
-                setTriangle(false);
-                setCircle(false)
-                setIsMouse(true)
-                break;
-        }
-    }
-
-    const addText = () => {
-        setIsEditing(true)
-
+    const resetAllTools = () => {
         setIsPen(false);
+        setIsPanning(false);
         setEraser(false);
         setLine(false);
         setArrowLine(false);
         setRectangle(false);
         setTriangle(false);
-        setCircle(false)
-        setIsMouse(false)
+        setCircle(false);
+        setIsMouse(false);
+    };
+
+    const changeControl = (cmd) => {
+        resetAllTools();
+
+        switch (cmd) {
+            case "pen":
+                setIsPen(true);
+                break;
+            case "panning":
+                setIsPanning(true);
+                break;
+            case "eraser":
+                setEraser(true);
+                break;
+            case "line":
+                setLine(true);
+                break;
+            case "arrowLine":
+                setArrowLine(true);
+                break;
+            case "rectangle":
+                setRectangle(true);
+                break;
+            case "triangle":
+                setTriangle(true);
+                break;
+            case "circle":
+                setCircle(true);
+                break;
+            case "mouse":
+                setIsMouse(true);
+                break;
+        }
+    }
+
+    const addText = () => {
+        resetAllTools()
+        setIsEditing(true)
     }
 
     const handleImages = (e) => {
@@ -161,14 +111,7 @@ function Controls() {
             };
 
             reader.readAsDataURL(file);
-            setIsPen(false);
-            setEraser(false);
-            setLine(false);
-            setArrowLine(false);
-            setRectangle(false);
-            setTriangle(false);
-            setCircle(false)
-            setIsMouse(true)
+            resetAllTools()
         }
     }
 
@@ -198,6 +141,7 @@ function Controls() {
                     <path fill="#ffffff" className={ `hover:fill-orange-300 ${isMouse ? 'fill-orange-300' : ''}` } d="M 9 2.59375 L 9 28.15625 L 10.65625 26.78125 L 14.6875 23.40625 L 16.71875 27.4375 L 17.15625 28.34375 L 18.0625 27.875 L 21.15625 26.28125 L 22.03125 25.84375 L 21.59375 24.9375 L 19.75 21.3125 L 24.8125 20.6875 L 26.84375 20.4375 L 25.40625 19 L 10.71875 4.28125 Z M 11 7.4375 L 22.5625 18.96875 L 18.0625 19.5 L 16.65625 19.6875 L 17.3125 20.96875 L 19.375 24.96875 L 18.0625 25.65625 L 15.90625 21.34375 L 15.3125 20.21875 L 14.34375 21.03125 L 11 23.84375 Z"></path>
                 </svg>
                 <svg onClick={ () => changeControl("pen") } className={ `w-6 cursor-pointer` } viewBox="0 0 512 512"><path className={ `hover:fill-orange-300 ${isPen ? 'fill-orange-300' : ''}` } fill="#eeeadd" d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z" /></svg>
+                <svg onClick={ () => changeControl("panning") } className={ `w-6 cursor-pointer` } aria-hidden="true" focusable="false" role="img" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke={ `${isPanning ? '#fdba74' : '#fff'}` } strokeLinecap="round" strokeLinejoin="round"><g strokeWidth="1.25"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5"></path><path d="M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5"></path><path d="M14 5.5a1.5 1.5 0 0 1 3 0v6.5"></path><path d="M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47"></path></g></svg>
             </div>
             <hr className="border-gray-400 mt-6 mb-2" />
             <div className="size flex justify-center gap-3 items-center py-1 flex-wrap">
