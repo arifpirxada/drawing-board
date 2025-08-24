@@ -33,6 +33,7 @@ function Controls() {
 
     // Id
     const imageId = useRef(0);
+    const eraserRef = useRef(null);
 
     const [controlWidth, setControlWidth] = useState("w-12")
 
@@ -128,23 +129,7 @@ function Controls() {
                 break;
         }
     }
-    const changeColor = (clr) => {
-        setColor(clr);
-    }
 
-    // const addText = () => {
-    //     const txt = prompt("Enter your text");
-    //     setTexts([...texts, { id: `text-${textId.current++}`, text: txt, color }])
-
-    //     setIsPen(false);
-    //     setEraser(false);
-    //     setLine(false);
-    //     setArrowLine(false);
-    //     setRectangle(false);
-    //     setTriangle(false);
-    //     setCircle(false)
-    //     setIsMouse(true)
-    // }
     const addText = () => {
         setIsEditing(true)
 
@@ -187,9 +172,21 @@ function Controls() {
         }
     }
 
+    const handleMouseEnter = () => {
+        if (eraser && eraserRef.current) {
+            eraserRef.current.classList.add('hidden')
+        }
+    }
+
+    const handleMouseLeave = () => {
+        if (eraser && eraserRef.current) {
+            eraserRef.current.classList.remove('hidden')
+        }
+    }
+
     return (
-        <div className={ `controls-container z-[1000] h-fit left-4 top-4 rounded-2xl fixed ${controlWidth} transition-all p-3` }>
-            { eraser && <img style={ { left: mouse.x - 15, top: mouse.y - 13 } } className="w-6 absolute" src="/eraser-icon.svg" alt="Eraser icon" /> }
+        <div onMouseEnter={ handleMouseEnter } onMouseLeave={ handleMouseLeave } className={ `controls-container z-[1000] h-fit left-4 top-4 rounded-2xl fixed ${controlWidth} transition-all p-3` }>
+            <img ref={ eraserRef } style={ { left: mouse.x - 15, top: mouse.y - 13 } } className={ `${!eraser && 'hidden'} w-6 absolute` } src="/eraser-icon.svg" alt="Eraser icon" />
             <div onClick={ toggleControls } className="w-6 cursor-pointer h-7 m-auto float-right">
                 <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
                 <span className="h-1 rounded-[1px] mb-1 block bg-slate-200"></span>
