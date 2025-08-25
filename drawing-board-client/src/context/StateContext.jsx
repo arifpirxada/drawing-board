@@ -39,6 +39,10 @@ export const StateProvider = ({ children }) => {
     // Image
     const [images, setImages] = useState([]);
 
+    // Grid
+
+    const [gridView, setGridView] = useState(false);
+
     return (
         <StateContext.Provider value={ {
             isPen,
@@ -80,6 +84,7 @@ export const StateProvider = ({ children }) => {
             textFontSize, setTextFontSize,
             isEditing, setIsEditing,
             editingText, setEditingText,
+            gridView, setGridView
         } }>
             { children }
         </StateContext.Provider>

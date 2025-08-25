@@ -26,6 +26,7 @@ function Controls() {
         setIsMouse,
         setImages,
         setIsEditing,
+        gridView, setGridView
     } = useContext(StateContext);
 
     // Id
@@ -168,20 +169,24 @@ function Controls() {
                 </svg>
 
             </div>
-            <label htmlFor="drawing-image" className={ `text-white cursor-pointer gap-2 mt-4 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-1'} text-center inline-flex items-center` }>
+            <label htmlFor="drawing-image" className={ `text-white cursor-pointer gap-2 mt-4 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] p-1'} text-center inline-flex items-center` }>
                 { controlWidth == "w-44" ? "Img" : "" }
                 <svg aria-hidden="true" width="20" height="20" focusable="false" role="img" viewBox="0 0 20 20" className="" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round"><g strokeWidth="1.25"><path d="M12.5 6.667h.01"></path><path d="M4.91 2.625h10.18a2.284 2.284 0 0 1 2.285 2.284v10.182a2.284 2.284 0 0 1-2.284 2.284H4.909a2.284 2.284 0 0 1-2.284-2.284V4.909a2.284 2.284 0 0 1 2.284-2.284Z"></path><path d="m3.333 12.5 3.334-3.333c.773-.745 1.726-.745 2.5 0l4.166 4.166"></path><path d="m11.667 11.667.833-.834c.774-.744 1.726-.744 2.5 0l1.667 1.667"></path></g></svg>
                 <input type="file" onChange={ handleImages } name="drawing-image" className="hidden" id="drawing-image" />
             </label>
-            <button onClick={ addText } type="button" className={ `text-white mt-2 gap-2 hover:bg-blue-800 focus:outline-none font-medium rounded-sm text-sm text-center inline-flex items-center  ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] pl-1'}` }>
+            <button onClick={ addText } type="button" className={ `text-white mt-2 gap-2 hover:bg-gray-800 focus:outline-none font-medium rounded-sm text-sm text-center inline-flex items-center  ${controlWidth == "w-44" ? 'px-2 py-2 mr-1' : '-mx-[2px] pl-1'}` }>
                 { controlWidth == "w-44" ? "Txt" : "" }
                 <img src="/text.svg" className="w-6 cursor-pointer" alt="Text icon" />
             </button>
-            <button onClick={ () => navigate("/view") } type="button" className={ `text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 rounded-sm text-sm ${controlWidth == "w-44" ? 'px-6 py-2 mt-2' : '-mx-[2px] p-2 mt-4'} inline-flex items-center` }>
+            <button onClick={ () => navigate("/view") } type="button" className={ `border focus:outline-none hover:bg-gray-800 focus:ring-4 font-medium text-white border-gray-600 dark:hover:border-gray-600 rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-1 mt-2' : '-mx-[2px] p-2 mt-4'} inline-flex items-center` }>
                 { controlWidth == "w-44" ? "View" : "" }
                 <svg className={ `rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}` } aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                 </svg>
+            </button>
+            <button onClick={ () => setGridView((prev) => !prev) } type="button" className={ `${gridView && 'bg-gray-800'} text-white ml-1 border-gray-600 border mt-2 gap-1 bg-red hover:bg-gray-800 focus:outline-none font-medium rounded-sm text-sm text-center inline-flex items-center  ${controlWidth == "w-44" ? 'px-2 py-1 mr-1' : '-mx-[2px] border-none'}` }>
+                { controlWidth == "w-44" ? "Grid" : "" }
+                <img src="/grid-icon.png" className="w-5 cursor-pointer" alt="Text icon" />
             </button>
 
         </div>

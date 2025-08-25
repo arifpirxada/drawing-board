@@ -1,4 +1,4 @@
-import { useState, useRef, useContext, useEffect } from 'react';
+import { useState, useRef, useContext, useEffect, useMemo } from 'react';
 import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
 import StateContext from '../context/StateContext';
 
@@ -7,7 +7,7 @@ const CELL_HEIGHT = 100;
 
 function Editor() {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
-    // const [stageScale, setStageScale] = useState(1);
+    const [stageScale, setStageScale] = useState(1);
 
     const [lines, setLines] = useState([]);
     const [arrowLines, setArrowLines] = useState([]);
@@ -40,79 +40,10 @@ function Editor() {
     const [isSelecting, setIsSelecting] = useState(false);
     const selectionRef = useRef(null);
 
-    // Infinite canvas
-
-    // Calculate buffer based on zoom level
-    // const bufferMultiplier = Math.max(2, 4 / stageScale);
-    // const bufferWidth = window.innerWidth * bufferMultiplier;
-    // const bufferHeight = window.innerHeight * bufferMultiplier;
-
-    // // Calculate visible area bounds
-    // const startX = Math.floor((-stagePos.x - bufferWidth) / CELL_WIDTH) * CELL_WIDTH;
-    // const endX = Math.floor((-stagePos.x + bufferWidth * 2) / CELL_WIDTH) * CELL_WIDTH;
-    // const startY = Math.floor((-stagePos.y - bufferHeight) / CELL_HEIGHT) * CELL_HEIGHT;
-    // const endY = Math.floor((-stagePos.y + bufferHeight * 2) / CELL_HEIGHT) * CELL_HEIGHT;
-
-    // Calculate visible area bounds
-    const startX = Math.floor((-stagePos.x - window.innerWidth) / CELL_WIDTH) * CELL_WIDTH;
-    const endX = Math.floor((-stagePos.x + window.innerWidth * 1.5) / CELL_WIDTH) * CELL_WIDTH;
-    const startY = Math.floor((-stagePos.y - window.innerHeight) / CELL_HEIGHT) * CELL_HEIGHT;
-    const endY = Math.floor((-stagePos.y + window.innerHeight * 1.5) / CELL_HEIGHT) * CELL_HEIGHT;
-
-    // Generate only visible grid components
-    const gridComponents = [];
-    for (let x = startX; x < endX; x += CELL_WIDTH) {
-        for (let y = startY; y < endY; y += CELL_HEIGHT) {
-            gridComponents.push(
-                <Rect
-                    key={ `${x}-${y}` }
-                    x={ x }
-                    y={ y }
-                    width={ CELL_WIDTH }
-                    height={ CELL_HEIGHT }
-                    fill="#282828"
-                    stroke="#a99c9c99"
-                    strokeWidth={ 1 }
-                />
-            );
-        }
-    }
-
-    // const zoomIn = () => {
-    //     const stage = stageRef.current;
-    //     const oldScale = stage.scaleX();
-    //     const newScale = Math.min(2.5, oldScale + 0.25);
-
-    //     stage.scale({ x: newScale, y: newScale });
-    //     setStageScale(newScale);
-    // };
-
-    // const zoomOut = () => {
-    //     const stage = stageRef.current;
-    //     const oldScale = stage.scaleX();
-    //     const newScale = Math.max(0.75, oldScale - 0.25);
-
-    //     stage.scale({ x: newScale, y: newScale });
-    //     setStageScale(newScale);
-    // };
-
-    // const resetZoom = () => {
-    //     const stage = stageRef.current;
-    //     stage.scale({ x: 1, y: 1 });
-    //     stage.position({ x: 0, y: 0 });
-    //     setStageScale(1);
-    //     setStagePos({ x: 0, y: 0 });
-    // };
-
-
-    // Eraser func
-
-    const [isErasing, setIsErasing] = useState(false);
-
     const {
         color,
         lineWidth,
-        setMouse, mouse,
+        setMouse,
         line,
         arrowLine,
         isDrawing,
@@ -132,8 +63,77 @@ function Editor() {
         editingText, setEditingText,
         setIsMouse,
         textFont, textFontSize,
-        isPanning
+        isPanning,
+        gridView
     } = useContext(StateContext);
+
+    // Infinite canvas
+
+    const gridComponents = useMemo(() => {
+
+        // Calculate buffer based on zoom level
+        const bufferMultiplier = Math.min(1.6, 1.2 / stageScale);
+        const bufferWidth = window.innerWidth * bufferMultiplier;
+        const bufferHeight = window.innerHeight * bufferMultiplier;
+
+        // // Calculate visible area bounds
+        const startX = Math.floor((-stagePos.x - bufferWidth) / CELL_WIDTH) * CELL_WIDTH;
+        const endX = Math.floor((-stagePos.x + bufferWidth * 2) / CELL_WIDTH) * CELL_WIDTH;
+        const startY = Math.floor((-stagePos.y - bufferHeight) / CELL_HEIGHT) * CELL_HEIGHT;
+        const endY = Math.floor((-stagePos.y + bufferHeight * 2) / CELL_HEIGHT) * CELL_HEIGHT;
+
+        // Generate only visible grid components
+        const components = [];
+        for (let x = startX; x < endX; x += CELL_WIDTH) {
+            for (let y = startY; y < endY; y += CELL_HEIGHT) {
+                components.push(
+                    <Rect
+                        key={ `${x}-${y}` }
+                        x={ x }
+                        y={ y }
+                        width={ CELL_WIDTH }
+                        height={ CELL_HEIGHT }
+                        fill="#282828"
+                        stroke="#a99c9c99"
+                        strokeWidth={ gridView ? 1 : 0 }
+                    />
+                );
+            }
+        }
+        return components;
+    }, [gridView, stagePos.x, stagePos.y, stageScale])
+
+
+    const zoomIn = () => {
+        const stage = stageRef.current;
+        const oldScale = stage.scaleX();
+        const newScale = Math.min(2.5, oldScale + 0.25);
+
+        stage.scale({ x: newScale, y: newScale });
+        setStageScale(newScale);
+    };
+
+    const zoomOut = () => {
+        const stage = stageRef.current;
+        const oldScale = stage.scaleX();
+        const newScale = Math.max(0.75, oldScale - 0.25);
+
+        stage.scale({ x: newScale, y: newScale });
+        setStageScale(newScale);
+    };
+
+    const resetZoom = () => {
+        const stage = stageRef.current;
+        stage.scale({ x: 1, y: 1 });
+        stage.position({ x: 0, y: 0 });
+        setStageScale(1);
+        setStagePos({ x: 0, y: 0 });
+    };
+
+
+    // Eraser func
+
+    const [isErasing, setIsErasing] = useState(false);
 
     const checkAndDeleteShape = (e) => {
         const target = e.target;
@@ -204,7 +204,7 @@ function Editor() {
 
         if (isMouse && e.target === stageRef.current) {
             setSelectedShape(null);
-            setSelectedShapes([]); textareaRef
+            setSelectedShapes([]);
 
             setIsSelecting(true);
             setSelectionRect({
@@ -364,9 +364,9 @@ function Editor() {
             if (selBox.width > 5 && selBox.height > 5) {
                 // Find intersecting shapes
                 const selectedElements = [];
-                const layer = stageRef.current.getLayers()[0];
+                // const layer = stageRef.current.getLayers()[0];
 
-                layer.children.forEach((shape) => {
+                layerRef.current.children.forEach((shape) => {
                     const shapeBox = shape.getClientRect();
                     if (shape._id === selectionRef.current._id) {
                         return;
@@ -384,7 +384,6 @@ function Editor() {
                 setSelectionRect(prev => ({ ...prev, visible: false }));
             }, 10);
 
-            return;
         }
 
         setIsDrawing(false)
@@ -474,8 +473,8 @@ function Editor() {
                 height={ window.innerHeight }
                 x={ stagePos.x }
                 y={ stagePos.y }
-                // scaleX={ stageScale }
-                // scaleY={ stageScale }
+                scaleX={ stageScale }
+                scaleY={ stageScale }
                 draggable={ isPanning }
                 onDragEnd={ (e) => {
                     setStagePos(e.currentTarget.position());
@@ -484,7 +483,10 @@ function Editor() {
                 onMouseMove={ handleMouseMove }
                 onMouseUp={ handleMouseUp }
             >
-                <Layer>
+                <Layer
+                    name='grid'
+                    listening={ false }
+                >
                     { gridComponents }
                 </Layer>
                 <Layer ref={ layerRef }>
@@ -680,7 +682,7 @@ function Editor() {
                 rows={ 1 }
             />
             {/* Zoom Controls */ }
-            {/* <div style={ {
+            <div style={ {
                 position: 'absolute',
                 left: 20,
                 bottom: 20,
@@ -693,7 +695,7 @@ function Editor() {
                 <button onClick={ zoomOut }>Zoom Out (-)</button>
                 <button onClick={ resetZoom }>Reset</button>
                 <div>Scale: { stageScale.toFixed(2) }x</div>
-            </div> */}
+            </div>
         </div>
     );
 }
