@@ -15,6 +15,13 @@ class UserRepository:
             self.session.rollback()
             raise Exception(f"Database error during get user by email: {str(e)}")
 
+    def get_user_by_id(self, id: str):
+        try:
+            return self.session.query(User).filter(User.id == id).first()
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise Exception(f"Database error during get user by id: {str(e)}")
+
     def create_user(self, userData: RegisterUserInput):
         try:
             new_user = User(name=userData.name, email=userData.email, password=userData.password)

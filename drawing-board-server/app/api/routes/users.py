@@ -1,24 +1,25 @@
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
-from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from app.domain.users.schemas import Token, RegisterUserInput, UserResponse, RegisterUserOutput
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.domain.users.schemas import (
+    RegisterUserInput,
+    UserResponse,
+    RegisterUserOutput,
+    LoginInput,
+    LoginUserOut,
+    ReadUserMeOut
+)
 from app.domain.users.services import UserService
 from datetime import timedelta
+from typing import Literal, Annotated
+from fastapi.security import OAuth2PasswordBearer
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 Days
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 Days
 
 router = APIRouter(
     prefix="/api/users",
     tags=["users"],
 )
-
-userService = UserService()
-
-
-@router.get("/", response_model=list[UserResponse])
-async def read_users():
-    return [{"username": "Rick"}, {"username": "Morty"}]
-
 
 @router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def register_user(userData: RegisterUserInput):
@@ -34,7 +35,7 @@ async def register_user(userData: RegisterUserInput):
                 detail="User with this email already exists",
             )
 
-        user: RegisterUserOutput = userService.register_user(userData)
+        user: RegisterUserOutput = await userService.register_user(userData)
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = userService.create_access_token(
@@ -44,7 +45,7 @@ async def register_user(userData: RegisterUserInput):
             "success": True,
             "message": "Registration successfull",
             "user": user,
-            "access_token": access_token
+            "access_token": access_token,
         }
 
     except HTTPException:
@@ -57,19 +58,56 @@ async def register_user(userData: RegisterUserInput):
         )
 
 
-# @router.post("/login")
-# async def login(
-#     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-# ) -> Token:
-#     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect username or password",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
-#     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-#     access_token = create_access_token(
-#         data={"sub": user.username}, expires_delta=access_token_expires
-#     )
-#     return Token(access_token=access_token, token_type="bearer")
+@router.post("/login")
+async def login(form_data: LoginInput):
+    userService = UserService()
+
+    try:
+
+        user: LoginUserOut | Literal[False] = await userService.login(
+            form_data.email, form_data.password
+        )
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = userService.create_access_token(
+            data={"id": user.id}, expires_delta=access_token_expires
+        )
+
+        return {
+            "success": True,
+            "message": "Login successfull",
+            "user": user,
+            "access_token": access_token,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Login error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login unsuccessful",
+        )
+
+
+@router.get("/me", response_model=ReadUserMeOut)
+async def read_user_me(token: Annotated[str, Depends(oauth2_scheme)]):
+    userService = UserService()
+
+    try:
+        user: ReadUserMeOut = await userService.get_current_user(token)
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"read user me error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not get user",
+        )

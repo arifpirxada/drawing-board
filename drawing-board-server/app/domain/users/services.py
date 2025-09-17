@@ -4,18 +4,29 @@ from dotenv import load_dotenv
 import jwt
 from passlib.context import CryptContext
 from .repository import UserRepository
-from .schemas import RegisterUserInput, RegisterUserOutput
+from .schemas import RegisterUserInput, RegisterUserOutput, LoginUserOut, ReadUserMeOut
 from datetime import datetime, timedelta, timezone
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jwt.exceptions import InvalidTokenError
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = os.getenv("JWT_ALGORITHM")
+_secret_key = os.getenv("JWT_SECRET_KEY")
+_algorithm = os.getenv("JWT_ALGORITHM")
 
+if _secret_key is None:
+    raise ValueError("JWT_SECRET_KEY environment variable is not set.")
+SECRET_KEY: str = _secret_key
+
+if _algorithm is None:
+    raise ValueError("JWT_ALGORITHM environment variable is not set.")
+ALGORITHM: str = _algorithm 
 
 class UserService:
     def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self.userRepo = UserRepository()
 
     # Utils
@@ -47,11 +58,50 @@ class UserService:
 
     # Services
 
-    def register_user(self, userData: RegisterUserInput):
+    async def register_user(self, userData: RegisterUserInput):
         userData.password = self.get_password_hash(userData.password)
         user: RegisterUserOutput = self.userRepo.create_user(userData)
 
         return user
 
-    def authenticate_user(self):
-        pass
+    async def login(self, email: str, password: str):
+        user = self.userRepo.get_user_by_email(email)
+
+        if not user:
+            return False
+        
+        if not self.verify_password(password, user.password):
+            return False
+        
+        user_data = LoginUserOut(
+            id=str(user.id),
+            name=str(user.name),
+            email=str(user.email)
+        )
+        
+        return user_data
+    
+    async def get_current_user(self, token: str):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            id = payload.get("id")
+            if id is None:
+                raise credentials_exception
+        except InvalidTokenError:
+            raise credentials_exception
+        user = self.userRepo.get_user_by_id(id)
+        if user is None:
+            raise credentials_exception
+        
+        user_data = ReadUserMeOut(
+            id=str(user.id),
+            name=str(user.name),
+            email=str(user.email)
+        )
+
+        return user_data
