@@ -1,9 +1,23 @@
-import { useState, useRef, useContext, useEffect, useMemo } from 'react';
+import { useState, useRef, useContext, useEffect, useMemo, useCallback } from 'react';
 import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
 import StateContext from '../context/StateContext';
 
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 100;
+
+function throttle(func, delay) {
+    let timeoutFlag = null;
+
+    return (...args) => {
+        if (timeoutFlag === null) {
+            func(...args);
+            timeoutFlag = setTimeout(() => {
+                timeoutFlag = null;
+            }, delay);
+        }
+    };
+}
+
 
 function Editor() {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
@@ -139,45 +153,56 @@ function Editor() {
         const target = e.target;
         if (!target) return;
         const stage = target.getStage();
+
         const pointerPosition = stage.getPointerPosition();
 
-        const shapes = stage.getAllIntersections(pointerPosition);
+        // const shapes = stage.getAllIntersections(pointerPosition);
+        const shape = stage.getIntersection(pointerPosition);
 
-        shapes.forEach(shape => {
-            const shapeId = shape.attrs.id;
-            const shapeType = shape.attrs.shapeType;
+        if (!shape) return;
 
-            switch (shapeType) {
-                case 'image':
-                    setImages(prev => prev.filter(image => image.id !== shapeId));
-                    break;
-                case 'text':
-                    setTexts(prev => prev.filter(text => text.id !== shapeId));
-                    break;
-                case 'circle':
-                    setCircles(prev => prev.filter(circle => circle.id !== shapeId));
-                    break;
-                case 'triangle':
-                    setTriangles(prev => prev.filter(item => item.id !== shapeId));
-                    break;
-                case 'rectangle':
-                    setRectangles(prev => prev.filter(rect => rect.id !== shapeId));
-                    break;
-                case 'arrowline':
-                    setArrowLines(prev => prev.filter(arrow => arrow.id !== shapeId));
-                    break;
-                case 'line':
-                    setLines(prev => prev.filter(line => line.id !== shapeId));
-                    break;
-            }
-        });
+        const shapeId = shape.attrs.id;
+        const shapeType = shape.attrs.shapeType;
+
+        switch (shapeType) {
+            case 'image':
+                setImages(prev => prev.filter(image => image.id !== shapeId));
+                break;
+            case 'text':
+                setTexts(prev => prev.filter(text => text.id !== shapeId));
+                break;
+            case 'circle':
+                setCircles(prev => prev.filter(circle => circle.id !== shapeId));
+                break;
+            case 'triangle':
+                setTriangles(prev => prev.filter(item => item.id !== shapeId));
+                break;
+            case 'rectangle':
+                setRectangles(prev => prev.filter(rect => rect.id !== shapeId));
+                break;
+            case 'arrowline':
+                setArrowLines(prev => prev.filter(arrow => arrow.id !== shapeId));
+                break;
+            case 'line':
+                setLines(prev => prev.filter(line => line.id !== shapeId));
+                break;
+        }
     };
+
+    const throttledCheckAndDelete = useMemo(
+        () => throttle(checkAndDeleteShape, 16),
+        []
+    );
 
     const getWorldPosition = (stage) => {
         const pointer = stage.getPointerPosition();
-        const transform = stage.getAbsoluteTransform().copy();
-        transform.invert();
-        return transform.point(pointer);
+        const stagePosition = stage.position();
+        const scale = stage.scaleX();
+
+        return {
+            x: (pointer.x - stagePosition.x) / scale,
+            y: (pointer.y - stagePosition.y) / scale
+        };
     };
 
     const handleMouseDown = (e) => {
@@ -239,11 +264,12 @@ function Editor() {
         // Handle Erasing
         const stage = e.target.getStage();
         const point = getWorldPosition(stage);
+        const mousePoint = stage.getPointerPosition();
 
-        setMouse({ x: point.x, y: point.y });
+        setMouse({ x: mousePoint.x, y: mousePoint.y });
 
         if (eraser & isErasing) {
-            checkAndDeleteShape(e)
+            throttledCheckAndDelete(e)
             return;
         }
 
