@@ -10,6 +10,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 load_dotenv()
 
 _secret_key = os.getenv("JWT_SECRET_KEY")
@@ -24,10 +27,10 @@ if _algorithm is None:
 ALGORITHM: str = _algorithm 
 
 class UserService:
-    def __init__(self):
+    def __init__(self, session: AsyncSession):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-        self.userRepo = UserRepository()
+        self.userRepo = UserRepository(session)
 
     # Utils
 
@@ -60,12 +63,12 @@ class UserService:
 
     async def register_user(self, userData: RegisterUserInput):
         userData.password = self.get_password_hash(userData.password)
-        user: RegisterUserOutput = self.userRepo.create_user(userData)
+        user: RegisterUserOutput = await self.userRepo.create_user(userData)
 
         return user
 
     async def login(self, email: str, password: str):
-        user = self.userRepo.get_user_by_email(email)
+        user = await self.userRepo.get_user_by_email(email)
 
         if not user:
             return False
@@ -94,7 +97,7 @@ class UserService:
                 raise credentials_exception
         except InvalidTokenError:
             raise credentials_exception
-        user = self.userRepo.get_user_by_id(id)
+        user = await self.userRepo.get_user_by_id(id)
         if user is None:
             raise credentials_exception
         

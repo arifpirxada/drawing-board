@@ -1,34 +1,39 @@
 from .models import User
 from .schemas import RegisterUserInput, RegisterUserOutput
-from app.db.db import SessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 
 class UserRepository:
 
-    def __init__(self):
-        self.session = SessionLocal()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    def get_user_by_email(self, email: str):
+    async def get_user_by_email(self, email: str):
         try:
-            return self.session.query(User).filter(User.email == email).first()
+            stmt = select(User).where(User.email == email)
+            result = await self.session.execute(stmt)
+            return result.scalar_one_or_none() 
         except SQLAlchemyError as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise Exception(f"Database error during get user by email: {str(e)}")
 
-    def get_user_by_id(self, id: str):
+    async def get_user_by_id(self, id: str):
         try:
-            return self.session.query(User).filter(User.id == id).first()
+            stmt = select(User).where(User.id == id)
+            result = await self.session.execute(stmt)
+            return result.scalar_one_or_none()
         except SQLAlchemyError as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise Exception(f"Database error during get user by id: {str(e)}")
 
-    def create_user(self, userData: RegisterUserInput):
+    async def create_user(self, userData: RegisterUserInput):
         try:
             new_user = User(name=userData.name, email=userData.email, password=userData.password)
 
             self.session.add(new_user)
-            self.session.commit()
-            self.session.refresh(new_user)
+            await self.session.commit()
+            await self.session.refresh(new_user)
 
             user = RegisterUserOutput(
                 id=str(new_user.id),
@@ -38,5 +43,5 @@ class UserRepository:
 
             return user
         except SQLAlchemyError as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise Exception(f"Database error during user creation: {str(e)}")

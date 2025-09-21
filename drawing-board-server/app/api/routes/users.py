@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.domain.users.schemas import (
     RegisterUserInput,
-    UserResponse,
     RegisterUserOutput,
     LoginInput,
     LoginUserOut,
@@ -11,6 +10,10 @@ from app.domain.users.services import UserService
 from datetime import timedelta
 from typing import Literal, Annotated
 from fastapi.security import OAuth2PasswordBearer
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.db import get_db
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -22,13 +25,13 @@ router = APIRouter(
 )
 
 @router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
-async def register_user(userData: RegisterUserInput):
-    userService = UserService()
+async def register_user(userData: RegisterUserInput, session: AsyncSession = Depends(get_db)):
+    userService = UserService(session)
 
     try:
         # Check if user already exists
-        existing_user = userService.get_user_by_email(userData.email)
-        print(f"existing user: {existing_user}")
+        existing_user = await userService.get_user_by_email(userData.email)
+
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -59,8 +62,8 @@ async def register_user(userData: RegisterUserInput):
 
 
 @router.post("/login")
-async def login(form_data: LoginInput):
-    userService = UserService()
+async def login(form_data: LoginInput, session: AsyncSession = Depends(get_db)):
+    userService = UserService(session)
 
     try:
 
@@ -97,8 +100,8 @@ async def login(form_data: LoginInput):
 
 
 @router.get("/me", response_model=ReadUserMeOut)
-async def read_user_me(token: Annotated[str, Depends(oauth2_scheme)]):
-    userService = UserService()
+async def read_user_me(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_db)):
+    userService = UserService(session)
 
     try:
         user: ReadUserMeOut = await userService.get_current_user(token)

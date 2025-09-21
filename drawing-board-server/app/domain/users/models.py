@@ -2,6 +2,8 @@ import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.db import Base
+from sqlalchemy.orm import relationship
+
 
 class User(Base):
     __tablename__ = "users"
@@ -10,3 +12,5 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True)
     password = Column(String)
+
+    files = relationship('File', back_populates='user')
