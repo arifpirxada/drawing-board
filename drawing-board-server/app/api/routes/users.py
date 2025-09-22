@@ -33,6 +33,7 @@ async def register_user(userData: RegisterUserInput, session: AsyncSession = Dep
         existing_user = await userService.get_user_by_email(userData.email)
 
         if existing_user:
+            print("user exists")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User with this email already exists",
@@ -51,8 +52,8 @@ async def register_user(userData: RegisterUserInput, session: AsyncSession = Dep
             "access_token": access_token,
         }
 
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise e
     except Exception as e:
         print(f"Registration error: {e}")
         raise HTTPException(
