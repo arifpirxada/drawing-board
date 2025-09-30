@@ -30,8 +30,6 @@ export const tokenStorage = {
 
 export const authApi = {
     authenticateUser: async () => {
-        const token = tokenStorage.getToken()
-
         const res = await axios.get("/users/me")
         return res.data
     },

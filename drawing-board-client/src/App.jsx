@@ -8,7 +8,7 @@ import FilePage from './pages/FilePage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Functionality from './components/Functionality';
-import Dashboard from './components/dashboard/Dashboard';
+import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/partials/ProtectedRoute';
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
             <Route path="/view/user" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
             <Route path="/login" element={ <Login /> } />
             <Route path="/signup" element={ <Signup /> } />
-            <Route path="/dashboard" element={ <ProtectedRoute><Dashboard /></ProtectedRoute> } />
+            <Route path="/dashboard" element={ <ProtectedRoute><DashboardPage /></ProtectedRoute> } />
           </Routes>
         </Router>
       </AuthStateProvider>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createContext } from "react";
 import { useEffect } from 'react';
 import { authApi } from "../features/auth/auth";
+import AnimatedLogo from "../components/partials/AnimatedLogo";
 
 const AuthContext = createContext()
 
@@ -11,7 +12,7 @@ export const AuthStateProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [user, setUser] = useState(null);
 
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         let isMounted = true;
@@ -21,14 +22,13 @@ export const AuthStateProvider = ({ children }) => {
 
                 const userData = await authApi.authenticateUser();
 
-                if (isMounted && userData && userData.id && userData.email && userData.name) {
+                if (isMounted && userData?.id && userData?.email && userData?.name) {
                     setIsLoggedIn(true)
                     setUser(userData)
                 }
 
             } catch (err) {
                 console.log("Could not authenticate user")
-                setLoading(false)
 
                 authApi.logoutUser()
                 if (isMounted) {
@@ -36,7 +36,7 @@ export const AuthStateProvider = ({ children }) => {
                     setIsLoggedIn(false);
                 }
             } finally {
-                if (isMounted) setLoading(false)
+                if (isMounted) setIsLoading(false)
             }
         }
 
@@ -52,6 +52,12 @@ export const AuthStateProvider = ({ children }) => {
         user,
         setUser
     }), [isLoggedIn, user])
+
+    if (isLoading) {
+        return (
+            <AnimatedLogo />
+        );
+    }
 
     return (
         <AuthContext.Provider value={ contextValue }>
