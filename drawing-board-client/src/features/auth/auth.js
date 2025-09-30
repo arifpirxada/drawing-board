@@ -29,6 +29,13 @@ export const tokenStorage = {
 };
 
 export const authApi = {
+    authenticateUser: async () => {
+        const token = tokenStorage.getToken()
+
+        const res = await axios.get("/users/me")
+        return res.data
+    },
+
     createUser: async (userData) => {
         const res = await axios.post('/users/register', userData)
         return res.data
@@ -37,5 +44,9 @@ export const authApi = {
     loginUser: async (userData) => {
         const res = await axios.post('/users/login', userData)
         return res.data
+    },
+
+    logoutUser: async () => {
+        tokenStorage.removeToken()
     }
 }

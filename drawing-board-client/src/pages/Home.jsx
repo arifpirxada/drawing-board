@@ -1,44 +1,37 @@
-import Controls from "../components/Controls"
-import Editor from "../components/Editor"
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import Options from "../components/Options";
+import { authApi } from "../features/auth/auth"
+import { useContext } from "react";
+import AuthContext from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
+const Home = () => {
 
-function Home() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    useEffect(() => {
-        // for view modal
-        const handleKeyDown = (event) => {
-            if (event.ctrlKey && event.key === 'q') {
-                if (location.pathname == "/view") {
-                    navigate("/")
-                } else {
-                    navigate("/view")
-                }
-            } else if (event.ctrlKey && event.shiftKey && event.key == 'X') {
-                if (location.pathname == "/view/chat") {
-                    navigate("/")
-                } else {
-                    navigate("/view/chat")
-                }
-            }
-        };
+    const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext);
 
-        window.addEventListener('keydown', handleKeyDown);
+    const navigate = useNavigate()
 
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [location, navigate]);
+    const logout = () => {
+        authApi.logoutUser()
+
+        setUser(null)
+        setIsLoggedIn(false)
+        navigate('/login')
+    }
 
     return (
-        <>
-            <Controls />
-            <Editor />
-            <Options />
-        </>
+        <div className="home-page text-white">
+            <div className='p-4'>
+                <nav>
+                    <ul className="flex gap-4 justify-center">
+                        { isLoggedIn && <li><Link to="/dashboard">Dashboard</Link></li> }
+                        { isLoggedIn && <li onClick={ logout } className='cursor-pointer'>Logout</li> }
+                    </ul>
+                </nav>
+            </div>
+            <div className="my-8">
+                <h1 className='text-center text-2xl text-white font-bold'>Welcome to Drawing Board</h1>
+            </div>
+        </div>
     )
 }
 

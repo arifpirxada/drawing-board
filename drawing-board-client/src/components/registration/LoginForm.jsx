@@ -1,11 +1,15 @@
 import { useForm } from "react-hook-form"
 import registerImg from "../../assets/images/register.png";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { authApi, tokenStorage } from "../../features/auth/auth";
+import AuthContext from "../../context/AuthContext";
+import { Navigate, useNavigate } from "react-router-dom";
 
 
 function LoginForm() {
+
+  const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext)
 
   const [success, setSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -16,6 +20,8 @@ function LoginForm() {
     handleSubmit,
     formState: { errors },
   } = useForm()
+
+  const navigate = useNavigate()
 
 
   const loginUser = async (data) => {
@@ -30,6 +36,9 @@ function LoginForm() {
         setSuccess(true)
 
         tokenStorage.setToken(res.access_token)
+        setIsLoggedIn(true)
+        setUser(res.user)
+        navigate("/dashboard")
       } else {
         throw new Error("Login unsuccessfull")
       }
@@ -46,6 +55,10 @@ function LoginForm() {
         setErrorMessage("Login unsuccessfull! Please try later")
       }
     }
+  }
+
+  if (isLoggedIn) {
+    return <Navigate to="/" replace />;
   }
 
 
