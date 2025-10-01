@@ -19,7 +19,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={ <Home /> } />
-            <Route path="/file/:id" element={ <ProtectedRoute><FilePage /></ProtectedRoute> } />
+            <Route path="/files/:id" element={ <ProtectedRoute><FilePage /></ProtectedRoute> } />
             <Route path="/view" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
             <Route path="/view/chat" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
             <Route path="/view/user" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />

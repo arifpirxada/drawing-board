@@ -30,8 +30,6 @@ function LoginForm() {
 
       const res = await authApi.loginUser(data)
 
-      console.log(res)
-
       if (res.success && res.access_token) {
         setSuccess(true)
 
