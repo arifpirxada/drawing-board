@@ -4,7 +4,8 @@ from app.domain.users.schemas import (
     RegisterUserOutput,
     LoginInput,
     LoginUserOut,
-    ReadUserMeOut
+    ReadUserMeOut,
+    SearchUsersOut,
 )
 from app.domain.users.services import UserService
 from datetime import timedelta
@@ -24,8 +25,11 @@ router = APIRouter(
     tags=["users"],
 )
 
+
 @router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
-async def register_user(userData: RegisterUserInput, session: AsyncSession = Depends(get_db)):
+async def register_user(
+    userData: RegisterUserInput, session: AsyncSession = Depends(get_db)
+):
     userService = UserService(session)
 
     try:
@@ -101,12 +105,41 @@ async def login(form_data: LoginInput, session: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=ReadUserMeOut)
-async def read_user_me(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_db)):
+async def read_user_me(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: AsyncSession = Depends(get_db),
+):
     userService = UserService(session)
 
     try:
         user: ReadUserMeOut = await userService.get_current_user(token)
         return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"read user me error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not get user",
+        )
+
+
+@router.get("/search")
+async def search_users(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: AsyncSession = Depends(get_db),
+    q: str = "",
+):
+    userService = UserService(session)
+
+    try:
+        result: SearchUsersOut = await userService.search_users(q)
+
+        return {
+            "success": True,
+            "message": "User Search successfull",
+            "data": result
+        }
     except HTTPException:
         raise
     except Exception as e:

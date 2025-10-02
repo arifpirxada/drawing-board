@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from uuid import UUID
 
 class UserResponse (BaseModel):
     id: str
@@ -36,3 +36,14 @@ class ReadUserMeOut(BaseModel):
     id: str
     email: str
     name: str
+
+class UserOut(BaseModel):
+    id: UUID
+    email: str
+    name: str
+
+    class Config:
+        from_attributes = True
+
+class SearchUsersOut(BaseModel):
+    data: list[UserOut]

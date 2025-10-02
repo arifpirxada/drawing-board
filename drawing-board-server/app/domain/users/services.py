@@ -108,3 +108,8 @@ class UserService:
         )
 
         return user_data
+    
+
+    async def search_users(self, q: str):
+        result = await self.userRepo.search_users(q)
+        return result

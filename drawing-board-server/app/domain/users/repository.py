@@ -1,5 +1,5 @@
 from .models import User
-from .schemas import RegisterUserInput, RegisterUserOutput
+from .schemas import RegisterUserInput, RegisterUserOutput, UserOut, SearchUsersOut
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select
@@ -45,3 +45,17 @@ class UserRepository:
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Database error during user creation: {str(e)}")
+        
+
+    async def search_users(self, q: str):
+        try:
+            stmt = select(User).where(User.email.ilike(f"%{q}%"))
+            result = await self.session.execute(stmt)
+            users = result.scalars().all()
+
+            users_out = [UserOut.model_validate(u) for u in users]
+
+            return SearchUsersOut(data=users_out)
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Database error during searching users: {str(e)}")
