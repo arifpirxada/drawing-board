@@ -1,3 +1,4 @@
+import logo from '../../assets/images/logo.svg';
 
 const AnimatedLogo = () => {
 
@@ -6,7 +7,7 @@ const AnimatedLogo = () => {
             <div className="flex flex-col items-center gap-5">
                 <img
                     className={ `rounded w-24 h-24 animate-pulse transition-transform duration-300 ease-in-out` }
-                    src="logo.svg"
+                    src={ logo }
                     alt="Logo"
                 />
 

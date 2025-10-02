@@ -24,8 +24,17 @@ class FileRepository:
 
             return result.scalars().all()
         except SQLAlchemyError as e:
-            await self.session.rollback()
             raise Exception(f"Database error during reading files: {str(e)}")
+
+    async def read_single_file(self, file_id: str):
+        try:
+            stmt = select(File).where(File.id == file_id)
+            result = await self.session.execute(stmt)
+
+            return result.scalars().first()
+
+        except SQLAlchemyError as e:
+            raise Exception(f"Database error while reading a single file: {str(e)}")
 
     async def create_file(self, file_data: CreateFileInput, user_id: str):
         try:

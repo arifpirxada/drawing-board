@@ -55,7 +55,11 @@ class FileService:
         files = await self.fileRepo.read_files(user_id, skip, limit)
 
         return files
+    
+    async def read_single_file(self, file_id: str):
+        file = await self.fileRepo.read_single_file(file_id)
 
+        return file
     
 
     async def create_file(self, file_data: CreateFileInput, token: str):

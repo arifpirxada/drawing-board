@@ -40,6 +40,31 @@ async def read_files(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not read files",
         )
+    
+@router.get("/{file_id}")
+async def read_single_file(
+    file_id: str,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: AsyncSession = Depends(get_db)
+):
+    file_service = FileService(session)
+
+    try:
+        file = await file_service.read_single_file(file_id)
+
+        return {
+            "success": True,
+            "message": "File read successfully",
+            "file": file,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Read files error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not read files",
+        )
 
 
 @router.post("/")
