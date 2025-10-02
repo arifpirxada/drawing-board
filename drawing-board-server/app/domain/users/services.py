@@ -113,3 +113,7 @@ class UserService:
     async def search_users(self, q: str):
         result = await self.userRepo.search_users(q)
         return result
+    
+    async def get_users_by_id_arr(self, id_arr: list[str]):
+        result = await self.userRepo.get_user_by_id_arr(id_arr)
+        return result

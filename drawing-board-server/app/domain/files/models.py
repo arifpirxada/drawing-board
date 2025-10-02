@@ -1,13 +1,16 @@
 import uuid
-from sqlalchemy import Column, String, JSON, ForeignKey, Enum
+from sqlalchemy import Column, String, JSON, ForeignKey, Enum, DateTime
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from app.db.db import Base
 import enum
+from sqlalchemy.sql import func
+
 
 class AccessLevel(enum.Enum):
     public = "public"
     private = "private"
+
 
 class File(Base):
     __tablename__ = "files"
@@ -17,7 +20,9 @@ class File(Base):
     data = Column(JSON)
     owner = Column(UUID(as_uuid=True), ForeignKey("users.id"))
 
-    user = relationship('User', back_populates='files')
+    user = relationship("User", back_populates="files")
 
     access = Column(Enum(AccessLevel), default=AccessLevel.private)
     collaborators = Column(ARRAY(UUID(as_uuid=True)), default=list)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

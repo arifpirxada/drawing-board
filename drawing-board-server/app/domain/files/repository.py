@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from .schemas import CreateFileInput, CreateFileOutput
 from sqlalchemy import select
-from uuid import UUID
+from sqlalchemy import desc
 
 
 class FileRepository:
@@ -13,7 +13,13 @@ class FileRepository:
 
     async def read_files(self, user_id: str, skip: int, limit: int):
         try:
-            stmt = select(File).where(File.owner == user_id).offset(skip).limit(limit)
+            stmt = (
+                select(File)
+                .where(File.owner == user_id)
+                .order_by(desc(File.created_at))
+                .offset(skip)
+                .limit(limit)
+            )
             result = await self.session.execute(stmt)
 
             return result.scalars().all()
@@ -75,7 +81,6 @@ class FileRepository:
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Database error during updation file:{str(e)}")
-        
 
     async def delete_file(self, file_id: str, owner_id: str):
         try:

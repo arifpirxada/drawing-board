@@ -6,6 +6,7 @@ from app.domain.users.schemas import (
     LoginUserOut,
     ReadUserMeOut,
     SearchUsersOut,
+    GetUsersByIdArrInput
 )
 from app.domain.users.services import UserService
 from datetime import timedelta
@@ -138,13 +139,37 @@ async def search_users(
         return {
             "success": True,
             "message": "User Search successfull",
-            "data": result
+            "data": result.data
         }
     except HTTPException:
         raise
     except Exception as e:
-        print(f"read user me error: {e}")
+        print(f"Search users error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not get user",
+            detail="Could not search users",
+        )
+    
+@router.post("/getUsersByIdArr")
+async def get_users_by_id_arr(
+    id_arr: GetUsersByIdArrInput,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: AsyncSession = Depends(get_db)
+):
+    userService = UserService(session)
+    try:
+        result = await userService.get_users_by_id_arr(id_arr.data)
+
+        return {
+            "success": True,
+            "message": "Get users by id array successfull",
+            "data": result.data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"get_users_by_id_arr error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could get users by id array",
         )

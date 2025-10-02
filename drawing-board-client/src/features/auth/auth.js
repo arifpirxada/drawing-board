@@ -46,5 +46,15 @@ export const authApi = {
 
     logoutUser: async () => {
         tokenStorage.removeToken()
+    },
+
+    searchUsers: async (query) => {
+        const res = await axios.get(`/users/search?q=${query}`);
+        return res.data;
+    },
+
+    getUsersByIdArr: async (idArr) => {
+        const res = await axios.post('/users/getUsersByIdArr', { data: idArr });
+        return res.data;
     }
 }

@@ -47,3 +47,10 @@ class UserOut(BaseModel):
 
 class SearchUsersOut(BaseModel):
     data: list[UserOut]
+
+
+class GetUsersByIdArrInput(BaseModel):
+    data: list[str]
+
+class GetUsersByIdArrOut(BaseModel):
+    data: list[UserOut]
