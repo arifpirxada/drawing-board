@@ -42,7 +42,7 @@ const DashboardFiles = () => {
         <>
             { createFileModalOpen && <CreateFileModal setCreateFileModalOpen={ setCreateFileModalOpen } setFiles={ setFiles } /> }
             { editFileModalOpen && <EditFileModal setEditFileModalOpen={ setEditFileModalOpen } editFile={ editFile } setEditFile={ setEditFile } setFiles={ setFiles } /> }
-            <div className="p-4 sm:ml-64">
+            <div className="p-4">
                 <div className="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-14">
                     <div className="flex items-center overflow-hidden justify-center h-40 md:h-56 lg:h-80 mb-4 rounded bg-gray-50 dark:bg-gray-800">
                         <img src="dashboard-img.webp" alt="" />

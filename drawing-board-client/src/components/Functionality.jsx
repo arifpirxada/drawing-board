@@ -24,10 +24,7 @@ function Functionality() {
 
                         <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
                             <li className="me-2">
-                                <Link to="/view" aria-current="page" className={`inline-block p-4 ${location.pathname === '/view'  || location.pathname == '/view/user'? 'text-blue-600 bg-gray-100 rounded-t-lg active dark:bg-gray-800 dark:text-blue-500' : 'hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300'}`}>Chat</Link>
-                            </li>
-                            <li className="me-2">
-                                <Link to="/view/chat" className={`inline-block p-4 rounded-t-lg ${location.pathname === '/view' || location.pathname == '/view/user'? 'hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300' : 'text-blue-600 bg-gray-100 rounded-t-lg active dark:bg-gray-800 dark:text-blue-500'}`}>Group</Link>
+                                <p className={`inline-block p-4 'text-blue-600 bg-gray-100 rounded-br-lg active dark:bg-gray-800 dark:text-blue-500'`}>Collaborators</p>
                             </li>
                             <button type="button" onClick={() => navigate("/")} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
                                 <svg className="w-3 h-3" aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -37,8 +34,7 @@ function Functionality() {
                             </button>
                         </ul>
 
-                        {location.pathname === '/view' ? <Users /> : location.pathname === '/view/chat'? <Chat /> : <UserChat />}
-
+                        <Users />
                     </div>
                 </div>
             </div>

@@ -6,3 +6,11 @@ const socket = io(import.meta.env.VITE_SERVER_URL, {
 });
 
 export default socket;
+
+export function connectSocket(opts = {}) {
+  if (!socket.connected) socket.connect();
+}
+
+export function disconnectSocket() {
+  if (socket.connected) socket.disconnect();
+}
