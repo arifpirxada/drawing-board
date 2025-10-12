@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, File, UploadFile, Request
 from app.domain.files.schemas import CreateFileInput, UpdateFileInput
 from app.domain.files.services import FileService
 from fastapi.security import OAuth2PasswordBearer
@@ -151,4 +151,28 @@ async def delete_file(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="File deletion unsuccessful",
+        )
+
+
+@router.post("/{file_id}/upload")
+async def upload_file(
+    file_id: str,
+    request: Request,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    file: Annotated[UploadFile, File(...)],
+    session: AsyncSession = Depends(get_db)
+):
+    file_service = FileService(session)
+
+    try:
+        fileData = await file_service.upload_file(file, file_id, request)
+
+        return fileData
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"File upload error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="File upload unsuccessful",
         )

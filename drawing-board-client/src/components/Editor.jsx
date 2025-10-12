@@ -1,6 +1,7 @@
-import { useState, useRef, useContext, useEffect, useMemo, useCallback } from 'react';
-import { Stage, Layer, Line, Rect, Circle, Text, Image, Transformer, Arrow } from 'react-konva';
+import { useState, useRef, useContext, useEffect, useMemo } from 'react';
+import { Stage, Layer, Line, Rect, Circle, Text, Image as KonvaImage, Transformer, Arrow } from 'react-konva';
 import StateContext from '../context/StateContext';
+import useSocket from '../features/socketio/useSocket';
 
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 100;
@@ -19,9 +20,12 @@ function throttle(func, delay) {
 }
 
 
-function Editor() {
+function Editor({ fileId, userId }) {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
+
+    const [activeDrawings, setActiveDrawings] = useState(new Map());
+    const activeDrawingsRef = useRef(activeDrawings);
 
     const [lines, setLines] = useState([]);
     const [arrowLines, setArrowLines] = useState([]);
@@ -31,15 +35,6 @@ function Editor() {
     const [cursor, setCursor] = useState('cursor-crosshair')
     const stageRef = useRef(null);
     const textareaRef = useRef(null);
-
-    // For id
-    const textId = useRef(0);
-    const penId = useRef(0);
-    const lineId = useRef(0);
-    const rectId = useRef(0);
-    const triangleId = useRef(0);
-    const circleId = useRef(0);
-    const arrowId = useRef(0);
 
     // Multi selection
 
@@ -80,6 +75,8 @@ function Editor() {
         isPanning,
         gridView
     } = useContext(StateContext);
+
+    const { emit, on, off } = useSocket();
 
     // Infinite canvas
 
@@ -167,24 +164,31 @@ function Editor() {
         switch (shapeType) {
             case 'image':
                 setImages(prev => prev.filter(image => image.id !== shapeId));
+                emit('delete_image', { room: fileId, id: shapeId })
                 break;
             case 'text':
                 setTexts(prev => prev.filter(text => text.id !== shapeId));
+                emit('delete_text', { room: fileId, id: shapeId })
                 break;
             case 'circle':
                 setCircles(prev => prev.filter(circle => circle.id !== shapeId));
+                emit('delete_circle', { room: fileId, id: shapeId })
                 break;
             case 'triangle':
                 setTriangles(prev => prev.filter(item => item.id !== shapeId));
+                emit('delete_triangle', { room: fileId, id: shapeId })
                 break;
             case 'rectangle':
                 setRectangles(prev => prev.filter(rect => rect.id !== shapeId));
+                emit('delete_rectangle', { room: fileId, id: shapeId })
                 break;
             case 'arrowline':
                 setArrowLines(prev => prev.filter(arrow => arrow.id !== shapeId));
+                emit('delete_arrow_line', { room: fileId, id: shapeId })
                 break;
             case 'line':
                 setLines(prev => prev.filter(line => line.id !== shapeId));
+                emit('delete_line', { room: fileId, id: shapeId })
                 break;
         }
     };
@@ -244,19 +248,36 @@ function Editor() {
 
         setIsDrawing(true);
         if (isPen) {
-            setLines([...lines, { id: `pen-${penId.current++}`, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
+            const id = `pen-${userId}-${Date.now()}`
+            setLines([...lines, { id, userId, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_line', { room: fileId, id, userId, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth });
         } else if (line) {
-            setLines([...lines, { id: `line-${lineId.current++}`, points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            const id = `line-${userId}-${Date.now()}`
+            setLines([...lines, { id, userId, points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_straight_line', { room: fileId, id, userId, points: [pos.x, pos.y], fill: color, strokeWidth })
         } else if (rectangle) {
-            setRectangles([...rectangles, { id: `rect-${rectId.current++}`, x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            const id = `rect-${userId}-${Date.now()}`
+            setRectangles([...rectangles, { id, userId, x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_rectangle', { room: fileId, id, userId, x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (triangle) {
-            setTriangles([...triangles, { id: `triangle-${triangleId.current++}`, points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            const id = `triangle-${userId}-${Date.now()}`
+            setTriangles([...triangles, { id, userId, points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_triangle', { room: fileId, id, userId, points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (circle) {
-            setCircles([...circles, { id: `circle-${circleId.current++}`, x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            const id = `circle-${userId}-${Date.now()}`
+            setCircles([...circles, { id, userId, x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_circle', { room: fileId, id, userId, x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (arrowLine) {
-            setArrowLines([...arrowLines, { id: `arrow-${arrowId.current++}`, points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            const id = `arrow-${userId}-${Date.now()}`
+            setArrowLines([...arrowLines, { id, userId, points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setActiveDrawings(prev => new Map(prev).set(userId, id));
+            emit('draw_arrow_line', { room: fileId, id, userId, points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth })
         }
-
 
     };
 
@@ -284,94 +305,151 @@ function Editor() {
         }
 
         if (isDrawing) {
+
+            const myActiveShapeId = activeDrawings.get(userId);
+
+            if (!myActiveShapeId) return;
+
             if (isPen) {
-                const lastLine = lines[lines.length - 1];
-                lastLine.points = lastLine.points.concat([point.x, point.y]);
-
-                lines.splice(lines.length - 1, 1, lastLine);
-                setLines([...lines]);
+                setLines((prevLines) =>
+                    prevLines.map((line) => {
+                        if (line.id === myActiveShapeId) {
+                            return { ...line, points: line.points.concat([point.x, point.y]) }
+                        } else {
+                            return line;
+                        }
+                    })
+                )
+                emit('update_line', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                });
             } else if (line) {
-                const lastLine = lines[lines.length - 1];
-                const updatedPoints = [lastLine.points[0], lastLine.points[1], point.x, point.y];
-
-                const updatedLine = {
-                    ...lastLine,
-                    points: updatedPoints
-                };
-
-                const newLines = [...lines];
-                newLines[newLines.length - 1] = updatedLine;
-
-                setLines(newLines);
+                setLines((prevLines) =>
+                    prevLines.map((line) => {
+                        if (line.id === myActiveShapeId) {
+                            return { ...line, points: [line.points[0], line.points[1], point.x, point.y] };
+                        } else {
+                            return line;
+                        }
+                    })
+                )
+                emit('update_straight_line', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                })
             } else if (rectangle) {
-                const startX = rectangles[rectangles.length - 1].x;
-                const startY = rectangles[rectangles.length - 1].y;
+                setRectangles((prevRects) =>
+                    prevRects.map((rect) => {
+                        if (rect.id === myActiveShapeId) {
+                            const startX = rect.x;
+                            const startY = rect.y;
 
-                const width = point.x - startX;
-                const height = point.y - startY;
+                            const width = point.x - startX;
+                            const height = point.y - startY;
 
-                const lastRect = rectangles[rectangles.length - 1];
-                const updatedRect = {
-                    ...lastRect,
-                    width,
-                    height
-                };
-
-                const newRects = [...rectangles];
-                newRects[newRects.length - 1] = updatedRect;
-
-                setRectangles(newRects);
+                            return { ...rect, width, height }
+                        } else {
+                            return rect;
+                        }
+                    })
+                )
+                emit('update_rectangle', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                })
             } else if (triangle) {
-                const startX = triangles[triangles.length - 1].points[0];
-                const startY = triangles[triangles.length - 1].points[1];
+                setTriangles((prevTriangles) =>
+                    prevTriangles.map((triangle) => {
+                        if (triangle.id === myActiveShapeId) {
+                            const startX = triangle.points[0]
+                            const startY = triangle.points[1]
 
-                const x = point.x - startX;
-                const y = point.y - startY;
-                const lastTriangle = triangles[triangles.length - 1];
-                const updatedTriangle = { ...lastTriangle, points: [...lastTriangle.points] };
-                updatedTriangle.points[3] = updatedTriangle.points[1] + y;
-                updatedTriangle.points[4] = updatedTriangle.points[0] + x;
-                updatedTriangle.points[5] = updatedTriangle.points[1] + y;
+                            const x = point.x - startX;
+                            const y = point.y - startY;
 
+                            const updatedTriangle = { ...triangle, points: [...triangle.points] };
 
-                const newTriangles = [...triangles];
-                newTriangles[newTriangles.length - 1] = updatedTriangle;
+                            updatedTriangle.points[3] = updatedTriangle.points[1] + y;
+                            updatedTriangle.points[4] = updatedTriangle.points[0] + x;
+                            updatedTriangle.points[5] = updatedTriangle.points[1] + y;
 
-                setTriangles(newTriangles);
+                            return updatedTriangle;
+                        } else {
+                            return triangle;
+                        }
+                    })
+                )
+                emit('update_triangle', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                })
             } else if (circle) {
-                const startX = circles[circles.length - 1].x;
-                const startY = circles[circles.length - 1].y;
+                setCircles((prevCircles) =>
+                    prevCircles.map((circle) => {
+                        if (circle.id === myActiveShapeId) {
+                            const startX = circle.x;
+                            const startY = circle.y;
 
-                const dx = point.x - startX;
-                const dy = point.y - startY;
-                const newRadius = Math.sqrt(dx * dx + dy * dy); // Pythagorean theorem to calculate distance
+                            const dx = point.x - startX;
+                            const dy = point.y - startY;
 
-                const lastCircle = circles[circles.length - 1];
-                const updatedCircle = { ...lastCircle, radius: newRadius };
+                            const newRadius = Math.sqrt(dx * dx + dy * dy); // Pythagorean theorem to calculate distance
 
-                const newCircles = [...circles];
-                newCircles[newCircles.length - 1] = updatedCircle;
+                            return { ...circle, radius: newRadius }
 
-                setCircles(newCircles);
-
+                        } else {
+                            return circle;
+                        }
+                    })
+                )
+                emit('update_circle', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                })
             } else if (arrowLine) {
-                const lastLine = arrowLines[arrowLines.length - 1];
-                const updatedPoints = [lastLine.points[0], lastLine.points[1], point.x, point.y];
-
-                const updatedLine = {
-                    ...lastLine,
-                    points: updatedPoints
-                };
-
-                const newLines = [...arrowLines];
-                newLines[newLines.length - 1] = updatedLine;
-
-                setArrowLines(newLines);
+                setArrowLines((prevArrowLines) =>
+                    prevArrowLines.map((arrowLine) => {
+                        if (arrowLine.id === myActiveShapeId) {
+                            return { ...arrowLine, points: [arrowLine.points[0], arrowLine.points[1], point.x, point.y] }
+                        } else {
+                            return arrowLine;
+                        }
+                    })
+                )
+                emit('update_arrow_line', {
+                    room: fileId,
+                    id: myActiveShapeId,
+                    userId: userId,
+                    points: point
+                })
             }
         }
     };
 
     const handleMouseUp = () => {
+        // Clear MY active drawing
+        setActiveDrawings(prev => {
+            const updated = new Map(prev);
+            updated.delete(userId);
+            return updated;
+        });
+
+        emit('drawing_complete', {
+            room: fileId,
+            userId: userId
+        });
+
         if (isErasing) {
             setIsErasing(false)
         }
@@ -405,7 +483,7 @@ function Editor() {
                 setSelectedShapes(selectedElements);
             }
 
-            // Hide selection rectangle
+            // Hide selection rectangle    
             setTimeout(() => {
                 setSelectionRect(prev => ({ ...prev, visible: false }));
             }, 10);
@@ -467,8 +545,11 @@ function Editor() {
 
     const handleSaveText = () => {
         if (editingText !== '') {
+            const id = `text-${userId}-${Date.now()}`
             const rect = textareaRef.current.getBoundingClientRect();
-            setTexts([...texts, { id: `text-${textId.current++}`, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
+            setTexts([...texts, { id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
+
+            emit('add_text', { room: fileId, id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top })
         }
         textareaRef.current.classList.add("hidden")
         setEditingText('');
@@ -489,6 +570,377 @@ function Editor() {
             setCursor('cursor-crosshair')
         }
     }, [eraser, isMouse, isEditing, isPanning])
+
+
+
+    // Socket events
+
+    useEffect(() => {
+        activeDrawingsRef.current = activeDrawings;
+    }, [activeDrawings]);
+
+    useEffect(() => {
+
+        // Pen Drawing Handlers
+        const drawLine = (data) => {
+            if (data.userId === userId) {
+                return;
+            }
+            setLines(prevLines => [...prevLines, data]);
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id));
+        }
+
+
+        const updateLine = (data) => {
+            if (data.userId === userId) {
+                return;
+            }
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+
+            if (targetShapeId === data.id) {
+                setLines(prevLines =>
+                    prevLines.map(line =>
+                        line.id === data.id
+                            ? { ...line, points: line.points.concat([data.points.x, data.points.y]) }
+                            : line
+                    )
+                );
+            }
+        }
+
+        const deleteLine = (data) => {
+            if (data.userId === userId) return;
+
+            setLines((prevLines) =>
+                prevLines.filter((line) => line.id !== data.id)
+            )
+        }
+
+        // straight line
+
+        const drawStraightLine = (data) => {
+            if (data.userId === userId) return;
+
+            setLines(prevLines => [...prevLines, data]);
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id))
+        }
+
+        const updateStraightLine = (data) => {
+            if (data.userId === userId) return;
+
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+            if (targetShapeId !== data.id) return;
+
+            setLines(prevLines =>
+                prevLines.map((line) => {
+                    if (line.id === data.id) {
+                        return { ...line, points: [line.points[0], line.points[1], data.points.x, data.points.y] }
+                    } else {
+                        return line;
+                    }
+                })
+            )
+        }
+
+        // Rect angle
+
+        const drawRectangle = (data) => {
+            if (data.userId === userId) return;
+
+            setRectangles((prev) => [...prev, data])
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id))
+        }
+
+        const updateRectangle = (data) => {
+            if (data.userId === userId) return;
+
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+            if (targetShapeId !== data.id) return;
+
+            setRectangles((prevRects) =>
+                prevRects.map((rect) => {
+                    if (rect.id === data.id) {
+                        const width = data.points.x - rect.x;
+                        const height = data.points.y - rect.y;
+
+                        return { ...rect, width, height }
+                    } else {
+                        return rect;
+                    }
+                })
+            )
+        }
+
+        const deleteRectangle = (data) => {
+            if (data.userId === userId) return;
+
+            setRectangles((prevRects) =>
+                prevRects.filter((rect) => rect.id !== data.id)
+            )
+        }
+
+
+        // Triangle
+
+        const drawTriangle = (data) => {
+            if (data.userId === userId) return;
+
+            setTriangles((prev) => [...prev, data])
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id))
+        }
+
+        const updateTriangle = (data) => {
+            if (data.userId === userId) return;
+
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+            if (targetShapeId !== data.id) return;
+
+            setTriangles((prevTriangles) =>
+                prevTriangles.map((triangle) => {
+                    if (triangle.id === data.id) {
+                        const startX = triangle.points[0];
+                        const startY = triangle.points[1];
+
+                        const x = data.points.x - startX;
+                        const y = data.points.y - startY;
+
+                        const updatedTriangle = { ...triangle, points: [...triangle.points] };
+
+                        updatedTriangle.points[3] = updatedTriangle.points[1] + y;
+                        updatedTriangle.points[4] = updatedTriangle.points[0] + x;
+                        updatedTriangle.points[5] = updatedTriangle.points[1] + y;
+
+                        return updatedTriangle;
+                    } else {
+                        return triangle;
+                    }
+                })
+            )
+        }
+
+        const deleteTriangle = (data) => {
+            if (data.userId === userId) return;
+
+            setTriangles((prevTriangles) =>
+                prevTriangles.filter((item) => item.id !== data.id)
+            )
+        }
+
+
+
+        // Circle
+
+        const drawCircle = (data) => {
+            if (data.userId === userId) return;
+
+            setCircles((prev) => [...prev, data])
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id))
+        }
+
+        const updateCircle = (data) => {
+            if (data.userId === userId) return;
+
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+            if (targetShapeId !== data.id) return;
+
+            setCircles((prevCircles) =>
+                prevCircles.map((circle) => {
+                    if (circle.id === data.id) {
+                        const dx = data.points.x - circle.x;
+                        const dy = data.points.y - circle.y;
+
+                        const newRadius = Math.sqrt(dx * dx + dy * dy);
+
+                        return { ...circle, radius: newRadius }
+                    } else {
+                        return circle;
+                    }
+                })
+            )
+        }
+
+        const deleteCircle = (data) => {
+            if (data.userId === userId) return;
+
+            setCircles((prevCircles) =>
+                prevCircles.filter((item) => item.id !== data.id)
+            )
+        }
+
+
+        // Arrow line
+
+        const drawArrowLine = (data) => {
+            if (data.userId === userId) return;
+
+            setArrowLines((prev) => [...prev, data])
+            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id))
+        }
+
+        const updateArrowLine = (data) => {
+            if (data.userId === userId) return;
+
+            const targetShapeId = activeDrawingsRef.current.get(data.userId);
+            if (targetShapeId !== data.id) return;
+
+            setArrowLines((prevArrowLines) =>
+                prevArrowLines.map((arrowLine) => {
+                    if (arrowLine.id === data.id) {
+                        return { ...arrowLine, points: [arrowLine.points[0], arrowLine.points[1], data.points.x, data.points.y] }
+                    } else {
+                        return arrowLine;
+                    }
+                })
+            )
+        }
+
+        const deleteArrowLine = (data) => {
+            if (data.userId === userId) return;
+
+            setArrowLines((prev) =>
+                prev.filter((item) => item.id !== data.id)
+            )
+        }
+
+        // Image
+
+        const addImage = (data) => {
+            if (data.userId === userId) return;
+
+            const image = new Image();
+            const imageData = {
+                id: data.id,
+                userId: data.userId,
+                image,
+                src: data.url
+            };
+
+            image.onload = function () {
+                setImages((prev) => [...prev, imageData]);
+            };
+            image.src = data.url;
+        }
+
+        const deleteImage = (data) => {
+            if (data.userId === userId) return;
+
+            setImages((prev) =>
+                prev.filter((item) => item.id !== data.id)
+            )
+        }
+
+
+        // Text
+
+        const addText = (data) => {
+            if (data.userId === userId) return
+
+            setTexts((prevTexts) => [...prevTexts, data])
+        }
+
+        const deleteText = (data) => {
+            if (data.userId === userId) return;
+
+            setTexts((prev) =>
+                prev.filter((item) => item.id !== data.id)
+            )
+        }
+
+
+
+
+        // Other
+
+        const drawingComplete = (data) => {
+            if (data.userId !== userId) {
+                // Remove from active drawings
+                setActiveDrawings(prev => {
+                    const updated = new Map(prev);
+                    updated.delete(data.userId);
+                    return updated;
+                });
+            }
+        }
+
+        // Pen Drawing event listeners
+        on('draw_line', drawLine);
+        on('update_line', updateLine);
+        on('delete_line', deleteLine)
+
+        // Straight line listeners
+        on('draw_straight_line', drawStraightLine)
+        on('update_straight_line', updateStraightLine)
+
+        // Rectangle
+
+        on('draw_rectangle', drawRectangle)
+        on('update_rectangle', updateRectangle)
+        on('delete_rectangle', deleteRectangle)
+
+        // Triangle
+
+        on('draw_triangle', drawTriangle)
+        on('update_triangle', updateTriangle)
+        on('delete_triangle', deleteTriangle)
+
+        // Circle
+
+        on('draw_circle', drawCircle)
+        on('update_circle', updateCircle)
+        on('delete_circle', deleteCircle)
+
+        // Arrow Line
+
+        on('draw_arrow_line', drawArrowLine)
+        on('update_arrow_line', updateArrowLine)
+        on('delete_arrow_line', deleteArrowLine)
+
+
+        // Add Image
+
+        on('add_image', addImage)
+        on('delete_image', deleteImage)
+
+        // Add Text
+
+        on('add_text', addText)
+        on('delete_text', deleteText)
+
+
+        // Other
+        on('drawing_complte', drawingComplete)
+
+        return () => {
+            off('draw_line', drawLine);
+            off('update_line', updateLine);
+            off('delete_line', deleteLine)
+
+            off('draw_straight_line', drawStraightLine)
+            off('update_straight_line', updateStraightLine)
+            off('draw_rectangle', drawRectangle)
+
+            off('update_rectangle', updateRectangle)
+            off('delete_rectangle', deleteRectangle)
+            off('draw_triangle', drawTriangle)
+
+            off('update_triangle', updateTriangle)
+            off('delete_triangle', deleteTriangle)
+
+            off('draw_circle', drawCircle)
+            off('update_circle', updateCircle)
+            off('delete_circle', deleteCircle)
+
+            off('draw_arrow_line', drawArrowLine)
+            off('update_arrow_line', updateArrowLine)
+            off('add_image', addImage)
+            off('delete_image', deleteImage)
+
+            off('add_text', addText)
+            off('delete_text', deleteText)
+
+            off('drawing_complte', drawingComplete)
+        };
+    }, [on, off]);
 
 
     return (
@@ -522,7 +974,7 @@ function Editor() {
                             ? imageWidth * (item.image.naturalHeight / item.image.naturalWidth)
                             : 300;
                         return (
-                            <Image
+                            <KonvaImage
                                 key={ item.id }
                                 id={ item.id }
                                 shapeType="image"

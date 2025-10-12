@@ -1,8 +1,11 @@
 import { useContext, useRef, useState } from "react"
 import StateContext from "../context/StateContext"
 import { useNavigate } from "react-router-dom";
+import useSocket from "../features/socketio/useSocket";
+import axios from "../lib/axios";
+import UploadLoading from "./Filepage/UploadLoading";
 
-function Controls({ fileId }) {
+function Controls({ fileId, userId }) {
     const navigate = useNavigate();
 
     const {
@@ -29,11 +32,14 @@ function Controls({ fileId }) {
         gridView, setGridView
     } = useContext(StateContext);
 
+    const { emit } = useSocket();
+
     // Id
-    const imageId = useRef(0);
+    // const imageId = useRef(0);
     const eraserRef = useRef(null);
 
     const [controlWidth, setControlWidth] = useState("w-12")
+    const [uploading, setUploading] = useState(false)
 
     const toggleControls = () => {
         if (controlWidth == "w-12") {
@@ -94,27 +100,50 @@ function Controls({ fileId }) {
         setIsEditing(true)
     }
 
-    const handleImages = (e) => {
+    const handleImages = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
+        if (!file) return;
 
-            reader.onload = function (event) {
-                const image = new Image();
+        const id = `image-${userId}-${Date.now()}`;
 
-                image.onload = function () {
-                    setImages((prevImages) => [...prevImages, {
-                        image: image,
-                        id: `image-${imageId.current++}`
-                    }]);
-                };
-                image.src = event.target.result;
+        try {
+            setUploading(true);
+
+            // Upload file first using FormData
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await axios.post(`/files/${fileId}/upload`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            if (!res.data?.url) {
+                alert("Could not upload file. Please try later")
+                return;
+            }
+
+            const imageUrl = res.data.url;
+
+            // Now load and show preview from uploaded URL
+            const image = new Image();
+            image.onload = () => {
+                setImages((prev) => [
+                    ...prev,
+                    { id, userId, image, url: imageUrl },
+                ]);
             };
+            image.src = imageUrl;
 
-            reader.readAsDataURL(file);
-            resetAllTools()
+            emit('add_image', { room: fileId, userId, id, url: imageUrl });
+
+        } catch (err) {
+            console.error('Upload failed:', err);
+            alert('Failed to upload image. Please try again.');
+        } finally {
+            setUploading(false);
+            resetAllTools();
         }
-    }
+    };
 
     const handleMouseEnter = () => {
         if (eraser && eraserRef.current) {
@@ -178,7 +207,7 @@ function Controls({ fileId }) {
                 { controlWidth == "w-44" ? "Txt" : "" }
                 <img src="/text.svg" className="w-6 cursor-pointer" alt="Text icon" />
             </button>
-            <button onClick={ () => navigate(`/files/${fileId}/view/user`) } type="button" className={ `border focus:outline-none hover:bg-gray-800 focus:ring-4 font-medium text-white border-gray-600 dark:hover:border-gray-600 rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-1 mt-2' : '-mx-[2px] p-2 mt-4'} inline-flex items-center` }>
+            <button onClick={ () => navigate(`/files/${fileId}/collaborators`) } type="button" className={ `border focus:outline-none hover:bg-gray-800 focus:ring-4 font-medium text-white border-gray-600 dark:hover:border-gray-600 rounded-sm text-sm ${controlWidth == "w-44" ? 'px-2 py-1 mt-2' : '-mx-[2px] p-2 mt-4'} inline-flex items-center` }>
                 { controlWidth == "w-44" ? "View" : "" }
                 <svg className={ `rtl:rotate-180 w-3.5 h-3.5 ${controlWidth == "w-44" ? 'ms-2' : ''}` } aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
@@ -189,6 +218,7 @@ function Controls({ fileId }) {
                 <img src="/grid-icon.png" className="w-5 cursor-pointer" alt="Text icon" />
             </button>
 
+            {uploading && <UploadLoading />}
         </div>
     )
 }

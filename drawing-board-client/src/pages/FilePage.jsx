@@ -153,6 +153,7 @@ function FilePage() {
         return () => {
             off('user_joined', handleUserJoined);
             off('current_users', handleCurrentUsers);
+            off('user_left', handleUserLeft);
         };
     }, [file])
 
@@ -165,8 +166,8 @@ function FilePage() {
 
     return (
         <>
-            <Controls fileId={ file.id } />
-            <Editor />
+            <Controls fileId={ file.id } userId={ user.id } />
+            <Editor fileId={ file.id } userId={ user.id } />
             <Options />
         </>
     )

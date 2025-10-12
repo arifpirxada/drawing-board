@@ -22,7 +22,7 @@ function Users() {
             </div>
 
 
-            <div className="p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+            {/* <div className="p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
 
 
                 <form className="w-full">
@@ -39,7 +39,7 @@ function Users() {
                 </form>
 
 
-            </div>
+            </div> */}
         </>
     )
 }

@@ -1,14 +1,11 @@
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Users from "./functionalify-components/Users";
-import Chat from "./functionalify-components/Chat";
-import UserChat from "./functionalify-components/UserChat";
 
 function Functionality() {
     const navigate = useNavigate();
-    const location = useLocation();
 
     const handleParentClick = () => {
-        navigate("/")
+        navigate(-1)
     };
 
     const handleChildClick = (event) => {
@@ -24,9 +21,9 @@ function Functionality() {
 
                         <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
                             <li className="me-2">
-                                <p className={`inline-block p-4 'text-blue-600 bg-gray-100 rounded-br-lg active dark:bg-gray-800 dark:text-blue-500'`}>Collaborators</p>
+                                <p className={`inline-block p-4 'text-blue-600 bg-gray-100 rounded-br-lg active dark:bg-gray-800 dark:text-blue-500'`}>Live Collaborators</p>
                             </li>
-                            <button type="button" onClick={() => navigate("/")} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
+                            <button type="button" onClick={() => navigate(-1)} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
                                 <svg className="w-3 h-3" aria-hidden="true" xmlnsXlink="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                 </svg>
