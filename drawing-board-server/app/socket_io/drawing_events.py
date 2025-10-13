@@ -189,3 +189,18 @@ async def drawing_complete(sid, data):
     userId = data.get("userId")
 
     await sio.emit("drawing_complete", {"userId": userId}, room=room, skip_sid=sid)
+
+
+
+@sio.event
+async def transform_shape(sid, data):
+    room = data.get('room')
+
+    await sio.emit('transform_shape', data, room=room, skip_sid=sid)
+
+
+@sio.event
+async def drag_shape(sid, data):
+    room = data.get('room')
+
+    await sio.emit('drag_shape', data, room=room, skip_sid=sid)

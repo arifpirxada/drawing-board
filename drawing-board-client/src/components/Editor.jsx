@@ -50,6 +50,7 @@ function Editor({ fileId, userId }) {
     const selectionRef = useRef(null);
 
     const {
+        mouse,
         color,
         lineWidth,
         setMouse,
@@ -251,7 +252,7 @@ function Editor({ fileId, userId }) {
             const id = `pen-${userId}-${Date.now()}`
             setLines([...lines, { id, userId, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
             setActiveDrawings(prev => new Map(prev).set(userId, id));
-            emit('draw_line', { room: fileId, id, userId, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth });
+            emit('draw_line', { room: fileId, id, userId, points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth, scaleX: 1, scaleY: 1, rotation: 0 });
         } else if (line) {
             const id = `line-${userId}-${Date.now()}`
             setLines([...lines, { id, userId, points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
@@ -528,9 +529,6 @@ function Editor({ fileId, userId }) {
         }
     }, [selectedShape, selectedShapes]);
 
-    const handleDragMove = () => { }
-    const handleDragEnd = () => { }
-
     const autoResizeTextarea = () => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
@@ -572,6 +570,31 @@ function Editor({ fileId, userId }) {
     }, [eraser, isMouse, isEditing, isPanning])
 
 
+    const handleDragMove = (e, shapeId, shapeType) => {
+        const node = e.target;
+
+        const x = node.x();
+        const y = node.y(); 
+
+        emit('drag_shape', { room: fileId, id: shapeId, shapeType, x, y })
+    }
+
+    const handleDragEnd = (e, shapeId, shapeType) => {}
+
+
+    const handleTransformEnd = (e, shapeId, shapeType) => {
+        const node = e.target;
+
+        const x = node.x();
+        const y = node.y();
+        const scaleX = node.scaleX();
+        const scaleY = node.scaleY();
+        const rotation = node.rotation();
+
+        emit('transform_shape', { room: fileId, id: shapeId, shapeType, scaleX, scaleY, rotation, x, y })
+    }
+
+
 
     // Socket events
 
@@ -592,9 +615,8 @@ function Editor({ fileId, userId }) {
 
 
         const updateLine = (data) => {
-            if (data.userId === userId) {
-                return;
-            }
+            if (data.userId === userId) return;
+
             const targetShapeId = activeDrawingsRef.current.get(data.userId);
 
             if (targetShapeId === data.id) {
@@ -862,6 +884,52 @@ function Editor({ fileId, userId }) {
             }
         }
 
+        const transformShape = (data) => {
+
+            const stateMap = {
+                'line': setLines,
+                'rectangle': setRectangles,
+                'triangle': setTriangles,
+                'circle': setCircles,
+                'arrowline': setArrowLines,
+                'image': setImages,
+                'text': setTexts
+            };
+
+            const setter = stateMap[data.shapeType];
+            if (setter) {
+                setter(prev => prev.map(shape =>
+                    shape.id === data.id
+                        ? { ...shape, scaleX: data.scaleX, scaleY: data.scaleY, rotation: data.rotation, x: data.x, y: data.y }
+                        : shape
+                ));
+            }
+
+        }
+
+        const dragShape = (data) => {
+
+            const stateMap = {
+                'line': setLines,
+                'rectangle': setRectangles,
+                'triangle': setTriangles,
+                'circle': setCircles,
+                'arrowline': setArrowLines,
+                'image': setImages,
+                'text': setTexts
+            };
+
+            const setter = stateMap[data.shapeType];
+            if (setter) {
+                setter(prev => prev.map(shape =>
+                    shape.id === data.id
+                        ? { ...shape, x: data.x, y: data.y }
+                        : shape
+                ));
+            }
+
+        }
+
         // Pen Drawing event listeners
         on('draw_line', drawLine);
         on('update_line', updateLine);
@@ -909,6 +977,8 @@ function Editor({ fileId, userId }) {
 
         // Other
         on('drawing_complte', drawingComplete)
+        on('transform_shape', transformShape);
+        on('drag_shape', dragShape);
 
         return () => {
             off('draw_line', drawLine);
@@ -939,6 +1009,8 @@ function Editor({ fileId, userId }) {
             off('delete_text', deleteText)
 
             off('drawing_complte', drawingComplete)
+            off('transform_shape', transformShape);
+            off('drag_shape', dragShape);
         };
     }, [on, off]);
 
@@ -980,16 +1052,20 @@ function Editor({ fileId, userId }) {
                                 shapeType="image"
                                 className="selectable"
                                 image={ item.image }
-                                x={ (window.innerWidth / 2) - (imageWidth / 2) }  // Center horizontally
-                                y={ (window.innerHeight / 2) - (imageHeight / 2) }  // Center vertically
+                                x={ item.x ? item.x : (window.innerWidth / 2) - (imageWidth / 2) }  // Center horizontally
+                                y={ item.y ? item.y : (window.innerHeight / 2) - (imageHeight / 2) }  // Center vertically
                                 width={ imageWidth }
                                 height={ imageHeight }
+                                scaleX={ item.scaleX }
+                                scaleY={ item.scaleY }
+                                rotation={ item.rotation }
                                 draggable={ isMouse }
                                 onClick={ isMouse ? handleSelect : undefined }
                                 onTap={ isMouse ? handleSelect : undefined }
                                 onDragStart={ handleDragStart }
-                                onDragMove={ handleDragMove }
+                                onDragMove={ (e) => handleDragMove(e, item.id, 'image') }
                                 onDragEnd={ handleDragEnd }
+                                onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'image') }
                             />
                         )
                     }) }
@@ -1000,8 +1076,11 @@ function Editor({ fileId, userId }) {
                             shapeType="text"
                             text={ item.text }
                             className="selectable"
-                            x={ item.left }
-                            y={ item.top }
+                            x={ item.x ? item.x : item.left }
+                            y={ item.y ? item.y : item.top }
+                            scaleX={ item.scaleX }
+                            scaleY={ item.scaleY }
+                            rotation={ item.rotation }
                             fontFamily={ item.font }
                             fontSize={ item.fontSize }
                             fill={ item.color }
@@ -1009,8 +1088,9 @@ function Editor({ fileId, userId }) {
                             onClick={ isMouse ? handleSelect : undefined }
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
+                            onDragMove={ (e) => handleDragMove(e, item.id, 'text') }
                             onDragEnd={ handleDragEnd }
+                            onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'text') }
                         />
                     )) }
                     { circles.map((item, i) => (
@@ -1021,6 +1101,9 @@ function Editor({ fileId, userId }) {
                             className="selectable"
                             x={ item.x }
                             y={ item.y }
+                            scaleX={ item.scaleX }
+                            scaleY={ item.scaleY }
+                            rotation={ item.rotation }
                             radius={ item.radius }
                             fill={ item.fill }
                             stroke={ item.stroke }
@@ -1029,8 +1112,9 @@ function Editor({ fileId, userId }) {
                             onClick={ isMouse ? handleSelect : undefined }
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
+                            onDragMove={ (e) => handleDragMove(e, item.id, 'circle') }
                             onDragEnd={ handleDragEnd }
+                            onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'circle') }
                         />
                     )) }
                     { triangles.map((item, i) => (
@@ -1043,13 +1127,19 @@ function Editor({ fileId, userId }) {
                             fill={ item.fill }
                             stroke={ item.stroke }
                             strokeWidth={ item.strokeWidth }
+                            x={ item.x }
+                            y={ item.y }
+                            scaleX={ item.scaleX }
+                            scaleY={ item.scaleY }
+                            rotation={ item.rotation }
                             closed={ true }
                             draggable={ isMouse }
                             onClick={ isMouse ? handleSelect : undefined }
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
+                            onDragMove={ (e) => handleDragMove(e, item.id, 'triangle') }
                             onDragEnd={ handleDragEnd }
+                            onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'triangle') }
                         />
                     )) }
                     { rectangles.map((rect, i) => (
@@ -1065,12 +1155,16 @@ function Editor({ fileId, userId }) {
                             fill={ rect.fill }
                             stroke={ rect.stroke }
                             strokeWidth={ rect.strokeWidth }
+                            scaleX={ rect.scaleX }
+                            scaleY={ rect.scaleY }
+                            rotation={ rect.rotation }
                             draggable={ isMouse }
                             onClick={ isMouse ? handleSelect : undefined }
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
+                            onDragMove={ (e) => handleDragMove(e, rect.id, 'rectangle') }
                             onDragEnd={ handleDragEnd }
+                            onTransformEnd={ (e) => handleTransformEnd(e, rect.id, 'rectangle') }
                         />
 
                     )) }
@@ -1086,11 +1180,17 @@ function Editor({ fileId, userId }) {
                             fill={ item.fill }
                             stroke={ item.fill }
                             strokeWidth={ item.strokeWidth }
+                            x={ item.x }
+                            y={ item.y }
+                            scaleX={ item.scaleX }
+                            scaleY={ item.scaleY }
+                            rotation={ item.rotation }
                             draggable={ isMouse }
                             onTap={ isMouse ? handleSelect : undefined }
                             onClick={ isMouse ? handleSelect : undefined }
-                            onDragMove={ handleDragMove }
+                            onDragMove={ (e) => handleDragMove(e, item.id, 'arrowline') }
                             onDragEnd={ handleDragEnd }
+                            onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'arrowline') }
                         />
                     )) }
                     { lines.map((line, i) => (
@@ -1102,6 +1202,11 @@ function Editor({ fileId, userId }) {
                             points={ line.points }
                             stroke={ line.fill }
                             strokeWidth={ line.strokeWidth }
+                            scaleX={ line.scaleX }
+                            scaleY={ line.scaleY }
+                            rotation={ line.rotation }
+                            x={ line.x }
+                            y={ line.y }
                             tension={ 0.2 }
                             lineCap="round"
                             globalCompositeOperation="source-over"
@@ -1109,8 +1214,9 @@ function Editor({ fileId, userId }) {
                             onClick={ isMouse ? handleSelect : undefined }
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
-                            onDragMove={ handleDragMove }
-                            onDragEnd={ handleDragEnd }
+                            onDragMove={ (e) => handleDragMove(e, line.id, 'line') }
+                            onDragEnd={ (e) => handleDragEnd(e, line.id, 'line') }
+                            onTransformEnd={ (e) => handleTransformEnd(e, line.id, 'line') }
                         />
                     )) }
 
