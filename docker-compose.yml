@@ -1,0 +1,66 @@
+services:
+  client:
+    build:
+      context: ./drawing-board-client
+      dockerfile: ./Dockerfile.dev
+    container_name: client
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_SERVER_URL: ${VITE_SERVER_URL}
+    volumes:
+      - ./drawing-board-client:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - drawingboard_devnet
+    restart: always
+
+  server:
+    build:
+      context: ./drawing-board-server
+      dockerfile: ./Dockerfile.dev
+    container_name: server
+    ports:
+      - "3000:3000"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+
+      CLIENT_URL: ${CLIENT_URL}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}
+    volumes:
+      - ./drawing-board-server:/usr/src/app
+    networks:
+      - drawingboard_devnet
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - drawing_board_postgres_data:/var/lib/postgresql/data
+    networks: 
+      - drawingboard_devnet
+    restart: always
+
+volumes:
+  drawing_board_postgres_data:
+
+networks:
+  drawingboard_devnet:
+    driver: bridge
