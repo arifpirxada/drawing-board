@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import socketio
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
+from app.kafka_producer.producer import kafka_producer
 
 load_dotenv()
 
@@ -13,7 +15,12 @@ from .socket_io import sio
 
 CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    kafka_producer.flush()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
