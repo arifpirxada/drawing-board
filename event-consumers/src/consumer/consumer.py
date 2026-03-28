@@ -18,7 +18,7 @@ KAFKA_URL_2 = os.getenv("KAFKA_URL_2")
 
 if KAFKA_URL is None:
     logger.error("KAFKA_URL not provided")
-    raise
+    raise ValueError("KAFKA_URL not provided")
 
 bootstrap_servers = [KAFKA_URL]
 
@@ -46,10 +46,12 @@ class KafkaConsumer:
         logger.info("Message received: ")
         logger.info(json.dumps(data, indent=2))
 
+        self.consumer.commit(asynchronous=False)
+
     async def run(self):
         self.consumer.subscribe(topics=self.topics)
 
-        logger.info(f"Consumer subscribed: {",".join(bootstrap_servers)}; Group: {self.group}")
+        logger.info(f"Consumer subscribed: {",".join(self.topics)}; Group: {self.group}")
 
         try:
             while self.running:
@@ -62,7 +64,7 @@ class KafkaConsumer:
                 else:
                     await self.process_message(msg)
         except Exception as e:
-            logger.error(f"Error consuming messages: {e}")
+            logger.exception(f"Error consuming messages: {e}")
             raise
         finally:
             self.consumer.close()

@@ -6,7 +6,7 @@ from .db.db import check_connection
 async def main():
     await check_connection()
 
-    consumer = KafkaConsumer(topics=["order-events"])
+    consumer = KafkaConsumer(topics=["drawing_events"])
 
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
