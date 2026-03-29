@@ -5,11 +5,16 @@ import asyncio
 
 async def safe_kafka_send(topic, data):
     try:
-        await kafka_producer.send_message(topic, data)
-        print("Data sent: ", data)
+        room = data.get("room")
+        key = str(room) if room is not None else None
+
+        await kafka_producer.send_message(topic, data, key)
+
+        print(f"Sent to {topic} | key={key} | data=")
+
     except Exception as e:
         print(f"Kafka error: {e}")
-
+        raise
 
 # Pen Drawing Events
 @sio.event

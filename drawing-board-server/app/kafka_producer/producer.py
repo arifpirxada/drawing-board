@@ -28,7 +28,6 @@ class KafkaProducer:
             "compression.type": "snappy",
         }
         self.producer = Producer(self.conf)
-        self.loop = asyncio.get_event_loop()
 
     def _delivery_report(self, err, msg):
         if err is not None:
@@ -36,19 +35,28 @@ class KafkaProducer:
         else:
             logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
-    async def send_message(self, topic: str, value: dict):
+    async def send_message(self, topic: str, value: dict, key: str | bytes | None = None):
         try:
             payload = json.dumps(value).encode("utf-8")
 
-            self.producer.produce(topic, value=payload, callback=self._delivery_report)
+            key = self.serialize_key(key)
 
-            await asyncio.to_thread(self.producer.poll, 0)
+            self.producer.produce(topic, key=key, value=payload, callback=self._delivery_report)
+
+            self.producer.poll(0)
 
         except Exception as e:
             logger.error(f"Error producing to Kafka: {e}")
 
     def flush(self):
         self.producer.flush()
+
+    def serialize_key(self, key):
+        if key is None:
+            return None
+        if isinstance(key, str):
+            return key.encode("utf-8")
+        return key
 
 
 kafka_producer = KafkaProducer()

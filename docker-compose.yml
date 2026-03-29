@@ -37,10 +37,17 @@ services:
       DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}
     volumes:
       - ./drawing-board-server:/usr/src/app
+    env_file:
+      - .env
     networks:
       - drawingboard_devnet
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     restart: always
 
   postgres:
@@ -58,7 +65,7 @@ services:
       - drawingboard_devnet
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,8 +84,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-      kafka-2:
-        condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
     networks:
@@ -90,63 +95,39 @@ services:
     restart: unless-stopped
     ports:
       - "9092:9092"
+      - "9093:9093"
     networks:
       - drawingboard_devnet
     environment:
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CLUSTER_ID=01v8i2YfQguZosUoArIv6A
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,EXTERNAL://:9093,CONTROLLER://:9094
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9094
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
       interval: 15s
       timeout: 10s
       retries: 10
       start_period: 40s
 
-
-  kafka-2:
-    image: apache/kafka:latest
-    container_name: kafka-2
-    restart: unless-stopped
-    ports:
-      - "9094:9094"
-    networks:
-      - drawingboard_devnet
-    environment:
-      - KAFKA_NODE_ID=2
-      - KAFKA_PROCESS_ROLES=broker
-      - KAFKA_LISTENERS=PLAINTEXT://:9094
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9094
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - KAFKA_CLUSTER_ID=01v8i2YfQguZosUoArIv6A
-    depends_on:
-      kafka:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9094 --list > /dev/null 2>&1"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 40s
 
   kafka-init:
     image: apache/kafka:latest
     container_name: kafka-init
     depends_on:
-      - kafka
-      - kafka-2
+      kafka:
+        condition: service_healthy
     networks:
       - drawingboard_devnet
     volumes:
-      - ./init-scripts/create-topics.sh:/create-topics.sh
-    entrypoint: ["/bin/sh", "/create-topics.sh"]
+      - ./init-scripts/create-topics.dev.sh:/create-topics.dev.sh
+    entrypoint: ["/bin/sh", "/create-topics.dev.sh"]
 
 volumes:
   drawing_board_postgres_data:

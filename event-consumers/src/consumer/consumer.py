@@ -33,7 +33,8 @@ class KafkaConsumer:
         self.conf = {
             "bootstrap.servers" : ",".join(bootstrap_servers),
             "group.id": group,
-            "enable.auto.commit": False
+            "enable.auto.commit": False,
+            "auto.offset.reset": "earliest",
         }
         self.running = True
         self.consumer = Consumer(self.conf)
