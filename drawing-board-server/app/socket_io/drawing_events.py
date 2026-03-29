@@ -28,6 +28,7 @@ async def draw_line(sid, data):
         skip_sid=sid,
     )
 
+    data["event_type"] = "draw_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -43,6 +44,7 @@ async def update_line(sid, data):
         skip_sid=sid,
     )
     
+    data["event_type"] = "update_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -53,6 +55,7 @@ async def delete_line(sid, data):
 
     await sio.emit("delete_line", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -69,6 +72,8 @@ async def draw_straight_line(sid, data):
         room=room,
         skip_sid=sid,
     )
+
+    data["event_type"] = "draw_straight_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -78,6 +83,7 @@ async def update_straight_line(sid, data):
 
     await sio.emit("update_straight_line", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "update_straight_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -90,6 +96,7 @@ async def draw_rectangle(sid, data):
 
     await sio.emit("draw_rectangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "draw_rectangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -99,6 +106,7 @@ async def update_rectangle(sid, data):
 
     await sio.emit("update_rectangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "update_rectangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -108,6 +116,7 @@ async def delete_rectangle(sid, data):
 
     await sio.emit("delete_rectangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_rectangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -120,6 +129,7 @@ async def draw_triangle(sid, data):
 
     await sio.emit("draw_triangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "draw_triangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -129,6 +139,7 @@ async def update_triangle(sid, data):
 
     await sio.emit("update_triangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "update_triangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -138,6 +149,7 @@ async def delete_triangle(sid, data):
 
     await sio.emit("delete_triangle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_triangle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -150,6 +162,7 @@ async def draw_circle(sid, data):
 
     await sio.emit("draw_circle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "draw_circle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -159,6 +172,7 @@ async def update_circle(sid, data):
 
     await sio.emit("update_circle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "update_circle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -168,6 +182,7 @@ async def delete_circle(sid, data):
 
     await sio.emit("delete_circle", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_circle"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -180,6 +195,7 @@ async def draw_arrow_line(sid, data):
 
     await sio.emit("draw_arrow_line", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "draw_arrow_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -189,6 +205,7 @@ async def update_arrow_line(sid, data):
 
     await sio.emit("update_arrow_line", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "update_arrow_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -198,6 +215,7 @@ async def delete_arrow_line(sid, data):
 
     await sio.emit("delete_arrow_line", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_arrow_line"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -210,6 +228,7 @@ async def add_image(sid, data):
 
     await sio.emit("add_image", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "add_image"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -219,6 +238,7 @@ async def delete_image(sid, data):
 
     await sio.emit("delete_image", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_image"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -231,6 +251,7 @@ async def add_text(sid, data):
 
     await sio.emit("add_text", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "add_text"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -240,6 +261,7 @@ async def delete_text(sid, data):
 
     await sio.emit("delete_text", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "delete_text"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -253,6 +275,7 @@ async def drawing_complete(sid, data):
 
     await sio.emit("drawing_complete", {"userId": userId}, room=room, skip_sid=sid)
 
+    data["event_type"] = "drawing_complete"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -262,6 +285,7 @@ async def transform_shape(sid, data):
 
     await sio.emit("transform_shape", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "transform_shape"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
 
 
@@ -271,4 +295,5 @@ async def drag_shape(sid, data):
 
     await sio.emit("drag_shape", data, room=room, skip_sid=sid)
 
+    data["event_type"] = "drag_shape"
     asyncio.create_task(safe_kafka_send("drawing_events", data))
