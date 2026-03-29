@@ -38,18 +38,27 @@ class KafkaProducer:
     async def send_message(self, topic: str, value: dict, key: str | bytes | None = None):
         try:
             payload = json.dumps(value).encode("utf-8")
-
             key = self.serialize_key(key)
 
-            self.producer.produce(topic, key=key, value=payload, callback=self._delivery_report)
+            await asyncio.to_thread(
+                self.producer.produce,
+                topic,
+                key=key,
+                value=payload,
+                callback=self._delivery_report
+            )
 
             self.producer.poll(0)
 
         except Exception as e:
             logger.error(f"Error producing to Kafka: {e}")
 
-    def flush(self):
-        self.producer.flush()
+    async def flush(self, timeout: float = 5.0):
+        try:
+            await asyncio.to_thread(self.producer.flush, timeout)
+            logger.info("Producer flush completed")
+        except Exception as e:
+            logger.error(f"Error flushing producer: {e}")
 
     def serialize_key(self, key):
         if key is None:

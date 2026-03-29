@@ -18,7 +18,7 @@ CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    kafka_producer.flush()
+    await kafka_producer.flush()
 
 app = FastAPI(lifespan=lifespan)
 

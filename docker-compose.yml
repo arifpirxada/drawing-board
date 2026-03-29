@@ -35,6 +35,9 @@ services:
 
       CLIENT_URL: ${CLIENT_URL}
       DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}
+
+      KAFKA_URL: ${KAFKA_URL}
+      KAFKA_URL_2: ${KAFKA_URL_2}
     volumes:
       - ./drawing-board-server:/usr/src/app
     env_file:
@@ -109,6 +112,9 @@ services:
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9094
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
       interval: 15s
