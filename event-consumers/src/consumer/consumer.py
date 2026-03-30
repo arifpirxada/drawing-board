@@ -2,7 +2,6 @@ import os
 import logging
 import asyncio
 import json
-import math
 from confluent_kafka import Consumer
 from dotenv import load_dotenv
 from collections import defaultdict
@@ -11,6 +10,7 @@ from src.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from src.db.db import async_session
+from src.lib.handlers import get_handler
 
 load_dotenv()
 
@@ -56,176 +56,13 @@ class KafkaConsumer:
 
     
     def process_message(self, msg, file_data):
-        data = msg
-        event_type = data.get("event_type")
-        shape_id = data.get("id", "unknown")
+        event_type = msg.get("event_type")
 
         try:
-            match event_type:
-                case "draw_line":
-                    if "lines" not in file_data:
-                        file_data["lines"] = []
-                    file_data["lines"].append(data)
-
-                case "update_line":
-                    if "lines" not in file_data:
-                        logger.warning(f"update_line: No lines for {shape_id}")
-                        return
-                    for line in file_data["lines"]:
-                        if line["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                line["points"].append(x)
-                                line["points"].append(y)
-                            return
-                    logger.warning(f"update_line: Line {shape_id} not found")
-
-                case "delete_line":
-                    if "lines" not in file_data:
-                        return
-                    file_data["lines"] = [line for line in file_data["lines"] if line["id"] != shape_id]
-
-                case "draw_straight_line":
-                    if "lines" not in file_data:
-                        file_data["lines"] = []
-                    file_data["lines"].append(data)
-
-                case "update_straight_line":
-                    if "lines" not in file_data:
-                        logger.warning(f"update_straight_line: No lines for {shape_id}")
-                        return
-                    for line in file_data["lines"]:
-                        if line["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                line["points"] = [line["points"][0], line["points"][1], x, y]
-                            return
-                    logger.warning(f"update_straight_line: Line {shape_id} not found")
-
-                case "draw_rectangle":
-                    if "rectangles" not in file_data:
-                        file_data["rectangles"] = []
-                    file_data["rectangles"].append(data)
-
-                case "update_rectangle":
-                    if "rectangles" not in file_data:
-                        logger.warning(f"update_rectangle: No rectangles for {shape_id}")
-                        return
-                    for rectangle in file_data["rectangles"]:
-                        if rectangle["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                rectangle["width"] = x - rectangle["x"]
-                                rectangle["height"] = y - rectangle["y"]
-                            return
-                    logger.warning(f"update_rectangle: Rectangle {shape_id} not found")
-
-                case "delete_rectangle":
-                    if "rectangles" not in file_data:
-                        return
-                    file_data["rectangles"] = [rect for rect in file_data["rectangles"] if rect["id"] != shape_id]
-
-                case "draw_triangle":
-                    if "triangles" not in file_data:
-                        file_data["triangles"] = []
-                    file_data["triangles"].append(data)
-
-                case "update_triangle":
-                    if "triangles" not in file_data:
-                        logger.warning(f"update_triangle: No triangles for {shape_id}")
-                        return
-                    for triangle in file_data["triangles"]:
-                        if triangle["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                startX = triangle["points"][0]
-                                startY = triangle["points"][1]
-                                triangle["points"][3] = startY + (y - startY)
-                                triangle["points"][4] = startX + (x - startX)
-                                triangle["points"][5] = startY + (y - startY)
-                            return
-                    logger.warning(f"update_triangle: Triangle {shape_id} not found")
-
-                case "delete_triangle":
-                    if "triangles" not in file_data:
-                        return
-                    file_data["triangles"] = [tri for tri in file_data["triangles"] if tri["id"] != shape_id]
-
-                case "draw_circle":
-                    if "circles" not in file_data:
-                        file_data["circles"] = []
-                    file_data["circles"].append(data)
-
-                case "update_circle":
-                    if "circles" not in file_data:
-                        logger.warning(f"update_circle: No circles for {shape_id}")
-                        return
-                    for circle in file_data["circles"]:
-                        if circle["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                dx = x - circle["x"]
-                                dy = y - circle["y"]
-                                circle["radius"] = math.sqrt(dx * dx + dy * dy)
-                            return
-                    logger.warning(f"update_circle: Circle {shape_id} not found")
-
-                case "delete_circle":
-                    if "circles" not in file_data:
-                        return
-                    file_data["circles"] = [cir for cir in file_data["circles"] if cir["id"] != shape_id]
-
-                case "draw_arrow_line":
-                    if "arrowLines" not in file_data:
-                        file_data["arrowLines"] = []
-                    file_data["arrowLines"].append(data)
-
-                case "update_arrow_line":
-                    if "arrowLines" not in file_data:
-                        logger.warning(f"update_arrow_line: No arrowLines for {shape_id}")
-                        return
-                    for arrLine in file_data["arrowLines"]:
-                        if arrLine["id"] == shape_id:
-                            points = data.get("points", {})
-                            x = points.get("x")
-                            y = points.get("y")
-                            if x is not None and y is not None:
-                                arrLine["points"] = [arrLine["points"][0], arrLine["points"][1], x, y]
-                            return
-                    logger.warning(f"update_arrow_line: Arrow line {shape_id} not found")
-
-                case "delete_arrow_line":
-                    if "arrowLines" not in file_data:
-                        return
-                    file_data["arrowLines"] = [arrLine for arrLine in file_data["arrowLines"] if arrLine["id"] != shape_id]
-
-                case "add_image":
-                    pass
-                case "delete_image":
-                    pass
-                case "add_text":
-                    pass
-                case "delete_text":
-                    pass
-                case "drawing_complete":
-                    pass
-                case "transform_shape":
-                    pass
-                case "drag_shape":
-                    pass
-                case _:
-                    pass
+            handler = get_handler(event_type)
+            handler.handle_event(event_type, msg, file_data)
         except Exception as e:
+            shape_id = msg.get("id", "unknown")
             logger.error(f"Error processing {event_type} ({shape_id}): {e}", exc_info=True)
 
         
