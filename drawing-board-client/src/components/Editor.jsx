@@ -20,7 +20,7 @@ function throttle(func, delay) {
 }
 
 
-function Editor({ fileId, userId }) {
+function Editor({ fileId, userId, fileData }) {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
 
@@ -493,6 +493,20 @@ function Editor({ fileId, userId }) {
 
         setIsDrawing(false)
     };
+
+    // Load File Data
+
+    useEffect(() => {
+    if (!fileData) return
+
+    fileData.lines && setLines(fileData.lines)
+    fileData.arrowLines && setArrowLines(fileData.arrowLines) 
+    fileData.rectangles && setRectangles(fileData.rectangles)
+    fileData.triangles && setTriangles(fileData.triangles)  
+    fileData.circles && setCircles(fileData.circles)      
+}, [fileData])
+    
+    // Load File Data end
 
     const layerRef = useRef(null);
 

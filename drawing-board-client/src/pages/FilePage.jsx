@@ -167,7 +167,7 @@ function FilePage() {
     return (
         <>
             <Controls fileId={ file.id } userId={ user.id } />
-            <Editor fileId={ file.id } userId={ user.id } />
+            <Editor fileId={ file.id } userId={ user.id } fileData={ file.data } />
             <Options />
         </>
     )
