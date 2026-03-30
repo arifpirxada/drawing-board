@@ -7,7 +7,8 @@ COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
 COPY ./src ./src
 
-CMD ["python", "-m", "src.main"]
+CMD ["watchfiles", "--filter", "python", "python -m src.main"]

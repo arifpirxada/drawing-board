@@ -91,6 +91,9 @@ services:
         condition: service_completed_successfully
     networks:
       - drawingboard_devnet
+    volumes:
+      - ./event-consumers/src:/app/src
+
 
   kafka:
     image: apache/kafka:latest

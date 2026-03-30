@@ -8,11 +8,14 @@ async def main():
 
     consumer = KafkaConsumer(topics=["drawing_events"])
 
-    loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, consumer.stop)
+    task = asyncio.create_task(consumer.run())
 
-    await consumer.run()
+    try:
+        await task
+    except asyncio.CancelledError:
+        print("Main cancelled")
+    finally:
+        consumer.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())
