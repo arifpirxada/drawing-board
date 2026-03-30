@@ -1,11 +1,13 @@
 import os
+import logging
 from sqlalchemy.ext.asyncio import create_async_engine , async_sessionmaker, AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from dotenv import load_dotenv
 from sqlalchemy.orm import declarative_base
 
 load_dotenv()
+
+logger = logging.getLogger("event-consumers")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -32,7 +34,6 @@ async def check_connection():
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-            print("✅ Database connection successfull")
-    except SQLAlchemyError as e:
-        print("❌ Database connection failed")
-        print(f"Error: {e}")
+            logger.info("✅ Database connection successful")
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")

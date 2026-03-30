@@ -56,141 +56,158 @@ class KafkaConsumer:
 
     
     def process_message(self, msg, file_data):
-        try:
-            data = msg
-            
-            logger.info(f"Processing message: {data["event_type"]}")
-            # logger.info(json.dumps(data, indent=2))
+        data = msg
+        event_type = data.get("event_type")
+        shape_id = data.get("id", "unknown")
 
-            match data["event_type"]:
+        try:
+            match event_type:
                 case "draw_line":
                     if "lines" not in file_data:
                         file_data["lines"] = []
-
                     file_data["lines"].append(data)
 
                 case "update_line":
-                    if "lines" not in file_data: 
+                    if "lines" not in file_data:
+                        logger.warning(f"update_line: No lines for {shape_id}")
                         return
-
                     for line in file_data["lines"]:
-                        if line["id"] == data["id"]:
-                            line["points"].append(data["points"]["x"])
-                            line["points"].append(data["points"]["y"])
+                        if line["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                line["points"].append(x)
+                                line["points"].append(y)
+                            return
+                    logger.warning(f"update_line: Line {shape_id} not found")
 
                 case "delete_line":
-                    if "lines" not in file_data: 
+                    if "lines" not in file_data:
                         return
-
-                    file_data["lines"] = [line for line in file_data["lines"] if line["id"] != data["id"]]
+                    file_data["lines"] = [line for line in file_data["lines"] if line["id"] != shape_id]
 
                 case "draw_straight_line":
                     if "lines" not in file_data:
                         file_data["lines"] = []
-
                     file_data["lines"].append(data)
 
                 case "update_straight_line":
                     if "lines" not in file_data:
+                        logger.warning(f"update_straight_line: No lines for {shape_id}")
                         return
-                    
                     for line in file_data["lines"]:
-                        if line["id"] == data["id"]:
-                            line["points"] = [line["points"][0], line["points"][1], data["points"]["x"], data["points"]["y"]]
+                        if line["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                line["points"] = [line["points"][0], line["points"][1], x, y]
+                            return
+                    logger.warning(f"update_straight_line: Line {shape_id} not found")
 
                 case "draw_rectangle":
                     if "rectangles" not in file_data:
                         file_data["rectangles"] = []
-
                     file_data["rectangles"].append(data)
 
                 case "update_rectangle":
                     if "rectangles" not in file_data:
+                        logger.warning(f"update_rectangle: No rectangles for {shape_id}")
                         return
-                    
                     for rectangle in file_data["rectangles"]:
-                        if rectangle.id == data.id:
-                            rectangle["width"] = data["points"]["x"] - rectangle["x"]
-                            rectangle["height"] = data["points"]["y"] - rectangle["y"]
+                        if rectangle["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                rectangle["width"] = x - rectangle["x"]
+                                rectangle["height"] = y - rectangle["y"]
+                            return
+                    logger.warning(f"update_rectangle: Rectangle {shape_id} not found")
 
                 case "delete_rectangle":
                     if "rectangles" not in file_data:
                         return
-                    
-                    file_data["rectangles"] = [rect for rect in file_data["rectangles"] if rect["id"] != data["id"]]
+                    file_data["rectangles"] = [rect for rect in file_data["rectangles"] if rect["id"] != shape_id]
 
                 case "draw_triangle":
                     if "triangles" not in file_data:
                         file_data["triangles"] = []
-
-                    file_data["triangle"].append(data)
+                    file_data["triangles"].append(data)
 
                 case "update_triangle":
                     if "triangles" not in file_data:
+                        logger.warning(f"update_triangle: No triangles for {shape_id}")
                         return
-                    
                     for triangle in file_data["triangles"]:
-                        if triangle.id == data.id:
-                            startX = triangle["points"][0]
-                            startY = triangle["points"][1]
+                        if triangle["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                startX = triangle["points"][0]
+                                startY = triangle["points"][1]
+                                triangle["points"][3] = startY + (y - startY)
+                                triangle["points"][4] = startX + (x - startX)
+                                triangle["points"][5] = startY + (y - startY)
+                            return
+                    logger.warning(f"update_triangle: Triangle {shape_id} not found")
 
-                            x = data["points"]["x"] - startX
-                            y = data["points"]["y"] - startY
-
-                            triangle["points"][3] = triangle["points"][1] + y
-                            triangle["points"][4] = triangle["points"][0] + x
-                            triangle["points"][5] = triangle["points"][1] + y
-                    
                 case "delete_triangle":
                     if "triangles" not in file_data:
                         return
-                    
-                    file_data["triangles"] = [tri for tri in file_data["triangles"] if tri["id"] != data["id"]]
+                    file_data["triangles"] = [tri for tri in file_data["triangles"] if tri["id"] != shape_id]
 
                 case "draw_circle":
                     if "circles" not in file_data:
                         file_data["circles"] = []
-
                     file_data["circles"].append(data)
 
                 case "update_circle":
                     if "circles" not in file_data:
+                        logger.warning(f"update_circle: No circles for {shape_id}")
                         return
-                    
                     for circle in file_data["circles"]:
-                        if circle["id"] == data["id"]:
-                            dx = data["points"]["x"] - circle["x"]
-                            dy = data["points"]["y"] - circle["y"]
+                        if circle["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                dx = x - circle["x"]
+                                dy = y - circle["y"]
+                                circle["radius"] = math.sqrt(dx * dx + dy * dy)
+                            return
+                    logger.warning(f"update_circle: Circle {shape_id} not found")
 
-                            new_radius = math.sqrt(dx * dx + dy * dy)
-
-                            circle["radius"] = new_radius
-                    
                 case "delete_circle":
                     if "circles" not in file_data:
                         return
-                    
-                    file_data["circles"] = [cir for cir in file_data["circles"] if cir["id"] != data["id"]]
+                    file_data["circles"] = [cir for cir in file_data["circles"] if cir["id"] != shape_id]
 
                 case "draw_arrow_line":
                     if "arrowLines" not in file_data:
                         file_data["arrowLines"] = []
-
                     file_data["arrowLines"].append(data)
 
                 case "update_arrow_line":
                     if "arrowLines" not in file_data:
+                        logger.warning(f"update_arrow_line: No arrowLines for {shape_id}")
                         return
-                    
                     for arrLine in file_data["arrowLines"]:
-                        if arrLine["id"] == data["id"]:
-                            arrLine["points"] = [arrLine["points"][0], arrLine["points"][1], data["points"]["x"], data["points"]["y"]]
- 
+                        if arrLine["id"] == shape_id:
+                            points = data.get("points", {})
+                            x = points.get("x")
+                            y = points.get("y")
+                            if x is not None and y is not None:
+                                arrLine["points"] = [arrLine["points"][0], arrLine["points"][1], x, y]
+                            return
+                    logger.warning(f"update_arrow_line: Arrow line {shape_id} not found")
+
                 case "delete_arrow_line":
                     if "arrowLines" not in file_data:
                         return
-                    
-                    file_data["arrowLines"] = [arrLine for arrLine in file_data["arrowLines"] if arrLine["id"] != data["id"]]
+                    file_data["arrowLines"] = [arrLine for arrLine in file_data["arrowLines"] if arrLine["id"] != shape_id]
 
                 case "add_image":
                     pass
@@ -209,45 +226,31 @@ class KafkaConsumer:
                 case _:
                     pass
         except Exception as e:
-            logger.error(f"Error while processing message {e}")
-            raise
+            logger.error(f"Error processing {event_type} ({shape_id}): {e}", exc_info=True)
 
         
 
         
     
     async def process_file_messages(self, file_id, messages):
-        logger.info("Processing messages in bulk: ")
         try:
             async with self.get_repo() as file_repo:
                 file = await file_repo.read_single_file(file_id)
 
                 if file is None:
-                    logger.warning("File not found while processing file messages")
+                    logger.warning(f"File not found: {file_id}")
                     return
 
-                # lines
-                # arrowLines
-                # rectangles
-                # triangles
-                # circles
-
-                file_data = file.data
+                file_data = file.data if isinstance(file.data, dict) else {}
 
                 for msg in messages:
                     self.process_message(msg, file_data)
 
                 await file_repo.update_file_data(file, file_data)
-
-                logger.info("Modified file: ")
-                logger.info(json.dumps(file_data, indent=2))
-
                 self.consumer.commit(asynchronous=False)
 
-
         except Exception as e:
-            logger.error(f"Error while processing file messages {e}")
-            raise
+            logger.error(f"Error processing file {file_id}: {e}", exc_info=True)
 
     async def run(self):
         self.consumer.subscribe(topics=self.topics)
