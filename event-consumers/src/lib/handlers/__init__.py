@@ -4,6 +4,8 @@ from .rectangle_handler import RectangleHandler
 from .triangle_handler import TriangleHandler
 from .circle_handler import CircleHandler
 from .arrow_handler import ArrowHandler
+from .text_handler import TextHandler
+from .image_handler import ImageHandler
 from .noop_handler import NoOpHandler
 
 
@@ -19,6 +21,8 @@ class HandlerRegistry:
             TriangleHandler(),
             CircleHandler(),
             ArrowHandler(),
+            TextHandler(),
+            ImageHandler(),
             NoOpHandler(),
         ]
 

@@ -503,11 +503,32 @@ function Editor({ fileId, userId, fileData }) {
     fileData.arrowLines && setArrowLines(fileData.arrowLines) 
     fileData.rectangles && setRectangles(fileData.rectangles)
     fileData.triangles && setTriangles(fileData.triangles)  
-    fileData.circles && setCircles(fileData.circles)      
+    fileData.circles && setCircles(fileData.circles)
+    fileData.texts && setTexts(fileData.texts)
+    
+    if (fileData.images) {
+        const baseURL = import.meta.env.VITE_SERVER_URL;
+        if (baseURL) {
+            setImages([]);
+            
+            fileData.images.forEach((img) => {
+                const image = new Image();
+                const imageUrl = baseURL + "/uploads/" + img.name;
+
+                image.onload = () => {
+                    setImages((prev) => [
+                        ...prev,
+                        { id: img.id, userId: img.userId, image, url: imageUrl },
+                    ]);
+                }
+
+                image.src = imageUrl;
+            })
+        }
+    }
+
 }, [fileData])
     
-    // Load File Data end
-
     const layerRef = useRef(null);
 
     const [selectedShape, setSelectedShape] = useState(null);
@@ -843,18 +864,23 @@ function Editor({ fileId, userId, fileData }) {
         const addImage = (data) => {
             if (data.userId === userId) return;
 
+            const baseURL = import.meta.env.VITE_SERVER_URL
+            if (!baseURL) return;
+
+            const url = baseURL + "/uploads/" + data.name;
+
             const image = new Image();
             const imageData = {
                 id: data.id,
                 userId: data.userId,
                 image,
-                src: data.url
+                src: url
             };
 
             image.onload = function () {
                 setImages((prev) => [...prev, imageData]);
             };
-            image.src = data.url;
+            image.src = url;
         }
 
         const deleteImage = (data) => {

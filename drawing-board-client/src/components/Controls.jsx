@@ -123,6 +123,7 @@ function Controls({ fileId, userId }) {
             }
 
             const imageUrl = res.data.url;
+            const imageName = res.data.secure_filename
 
             // Now load and show preview from uploaded URL
             const image = new Image();
@@ -134,7 +135,7 @@ function Controls({ fileId, userId }) {
             };
             image.src = imageUrl;
 
-            emit('add_image', { room: fileId, userId, id, url: imageUrl });
+            emit('add_image', { room: fileId, userId, id, name: imageName });
 
         } catch (err) {
             console.error('Upload failed:', err);
