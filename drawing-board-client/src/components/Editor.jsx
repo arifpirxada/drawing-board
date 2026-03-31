@@ -615,7 +615,14 @@ function Editor({ fileId, userId, fileData }) {
         emit('drag_shape', { room: fileId, id: shapeId, shapeType, x, y })
     }
 
-    const handleDragEnd = (e, shapeId, shapeType) => {}
+    const handleDragEnd = (e, shapeId, shapeType) => {
+        const node = e.target;
+
+        const x = node.x();
+        const y = node.y();
+
+        emit('drag_shape_end', { room: fileId, id: shapeId, shapeType, x, y })
+    }
 
 
     const handleTransformEnd = (e, shapeId, shapeType) => {
@@ -1105,7 +1112,7 @@ function Editor({ fileId, userId, fileData }) {
                                 onTap={ isMouse ? handleSelect : undefined }
                                 onDragStart={ handleDragStart }
                                 onDragMove={ (e) => handleDragMove(e, item.id, 'image') }
-                                onDragEnd={ handleDragEnd }
+                                onDragEnd={ (e) => handleDragEnd(e, item.id, 'image') }
                                 onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'image') }
                             />
                         )
@@ -1130,7 +1137,7 @@ function Editor({ fileId, userId, fileData }) {
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ (e) => handleDragMove(e, item.id, 'text') }
-                            onDragEnd={ handleDragEnd }
+                            onDragEnd={ (e) => handleDragEnd(e, item.id, 'text') }
                             onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'text') }
                         />
                     )) }
@@ -1154,7 +1161,7 @@ function Editor({ fileId, userId, fileData }) {
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ (e) => handleDragMove(e, item.id, 'circle') }
-                            onDragEnd={ handleDragEnd }
+                            onDragEnd={ (e) => handleDragEnd(e, item.id, 'circle') }
                             onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'circle') }
                         />
                     )) }
@@ -1179,7 +1186,7 @@ function Editor({ fileId, userId, fileData }) {
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ (e) => handleDragMove(e, item.id, 'triangle') }
-                            onDragEnd={ handleDragEnd }
+                            onDragEnd={ (e) => handleDragEnd(e, item.id, 'triangle') }
                             onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'triangle') }
                         />
                     )) }
@@ -1204,7 +1211,7 @@ function Editor({ fileId, userId, fileData }) {
                             onTap={ isMouse ? handleSelect : undefined }
                             onDragStart={ handleDragStart }
                             onDragMove={ (e) => handleDragMove(e, rect.id, 'rectangle') }
-                            onDragEnd={ handleDragEnd }
+                            onDragEnd={ (e) => handleDragEnd(e, rect.id, 'rectangle') }
                             onTransformEnd={ (e) => handleTransformEnd(e, rect.id, 'rectangle') }
                         />
 
@@ -1230,7 +1237,7 @@ function Editor({ fileId, userId, fileData }) {
                             onTap={ isMouse ? handleSelect : undefined }
                             onClick={ isMouse ? handleSelect : undefined }
                             onDragMove={ (e) => handleDragMove(e, item.id, 'arrowline') }
-                            onDragEnd={ handleDragEnd }
+                            onDragEnd={ (e) => handleDragEnd(e, item.id, 'arrowline') }
                             onTransformEnd={ (e) => handleTransformEnd(e, item.id, 'arrowline') }
                         />
                     )) }

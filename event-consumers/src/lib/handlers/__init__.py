@@ -7,6 +7,7 @@ from .arrow_handler import ArrowHandler
 from .text_handler import TextHandler
 from .image_handler import ImageHandler
 from .transform_handler import TransformHandler
+from .drag_handler import DragHandler
 from .noop_handler import NoOpHandler
 
 
@@ -25,6 +26,7 @@ class HandlerRegistry:
             TextHandler(),
             ImageHandler(),
             TransformHandler(),
+            DragHandler(),
             NoOpHandler(),
         ]
 

@@ -294,5 +294,7 @@ async def drag_shape(sid, data):
 
     await sio.emit("drag_shape", data, room=room, skip_sid=sid)
 
-    data["event_type"] = "drag_shape"
+@sio.event
+async def drag_shape_end(sid, data):
+    data["event_type"] = "drag_shape_end"
     await safe_kafka_send("drawing_events", data)

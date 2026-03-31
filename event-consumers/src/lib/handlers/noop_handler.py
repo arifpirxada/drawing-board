@@ -5,7 +5,7 @@ class NoOpHandler(BaseHandler):
     @property
     def event_types(self) -> list[str]:
         return [
-            "drawing_complete", "drag_shape"
+            "drawing_complete"
         ]
 
     def handle_event(self, event_type: str, data: dict, file_data: dict):
