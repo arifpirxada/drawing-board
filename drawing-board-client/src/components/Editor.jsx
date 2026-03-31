@@ -505,7 +505,7 @@ function Editor({ fileId, userId, fileData }) {
     fileData.triangles && setTriangles(fileData.triangles)  
     fileData.circles && setCircles(fileData.circles)
     fileData.texts && setTexts(fileData.texts)
-    
+
     if (fileData.images) {
         const baseURL = import.meta.env.VITE_SERVER_URL;
         if (baseURL) {
@@ -519,7 +519,7 @@ function Editor({ fileId, userId, fileData }) {
                     setImages((prev) => {
                         const alreadyExists = prev.some((p) => p.id === img.id);
                         if (alreadyExists) return prev;
-                        return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl }];
+                        return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
                     });
                 }
 

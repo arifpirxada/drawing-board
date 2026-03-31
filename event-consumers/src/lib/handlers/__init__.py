@@ -6,6 +6,7 @@ from .circle_handler import CircleHandler
 from .arrow_handler import ArrowHandler
 from .text_handler import TextHandler
 from .image_handler import ImageHandler
+from .transform_handler import TransformHandler
 from .noop_handler import NoOpHandler
 
 
@@ -23,6 +24,7 @@ class HandlerRegistry:
             ArrowHandler(),
             TextHandler(),
             ImageHandler(),
+            TransformHandler(),
             NoOpHandler(),
         ]
 
