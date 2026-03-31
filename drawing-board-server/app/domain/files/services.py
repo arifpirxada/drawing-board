@@ -143,3 +143,14 @@ class FileService:
             raise HTTPException(
                 status_code=500, detail=f"Failed to save file: {str(e)}"
             )
+        
+    async def delete_uploaded_file(self, image_name: str):
+        try:
+            file_path = Path("uploads") / image_name
+
+            file_path.unlink(missing_ok=True)
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to delete uploaded file: {str(e)}"
+            )

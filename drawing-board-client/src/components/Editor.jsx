@@ -516,10 +516,11 @@ function Editor({ fileId, userId, fileData }) {
                 const imageUrl = baseURL + "/uploads/" + img.name;
 
                 image.onload = () => {
-                    setImages((prev) => [
-                        ...prev,
-                        { id: img.id, userId: img.userId, image, url: imageUrl },
-                    ]);
+                    setImages((prev) => {
+                        const alreadyExists = prev.some((p) => p.id === img.id);
+                        if (alreadyExists) return prev;
+                        return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl }];
+                    });
                 }
 
                 image.src = imageUrl;

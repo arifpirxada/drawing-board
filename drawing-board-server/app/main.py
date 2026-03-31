@@ -11,9 +11,10 @@ load_dotenv()
 
 from .api.routes import users
 from .api.routes import files
+from .api.routes import internal
 from .socket_io import sio
 
-CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
+CLIENT_URLS = os.getenv("CLIENT_URLS", "http://localhost:5173").split(",")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,7 +25,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[f"{CLIENT_URL}"],
+    allow_origins=CLIENT_URLS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,6 +36,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(users.router)
 app.include_router(files.router)
+app.include_router(internal.router)
 
 
 @app.get("/")
