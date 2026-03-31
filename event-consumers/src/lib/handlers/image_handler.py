@@ -30,7 +30,6 @@ class ImageHandler(BaseHandler):
                     print("no image name")
 
                 if SERVER_URL is not None and INTERNAL_SECRET is not None and image_name:
-                    print("deleting image")
                     url = SERVER_URL + "/api/internal/image/" + image_name
                     headers = {
                         "x-internal-secret": INTERNAL_SECRET
