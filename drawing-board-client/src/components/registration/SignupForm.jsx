@@ -1,111 +1,265 @@
-import { useForm } from "react-hook-form"
-import registerImg2 from "../../assets/images/register-2.png";
-import { Link } from 'react-router-dom';
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { useState, useContext } from "react";
 import { authApi, tokenStorage } from "../../features/auth/auth";
 import AuthContext from "../../context/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 
+const CornerBracket = ({ position }) => (
+  <div className={`auth-corner auth-corner--${position}`} aria-hidden="true">
+    <div className="auth-corner__h" />
+    <div className="auth-corner__v" />
+  </div>
+);
+
 function SignupForm() {
+  const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext);
 
-  const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext)
+  const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [focusedField, setFocusedField] = useState(null);
 
-  const [success, setSuccess] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm()
+  } = useForm();
 
   const registerUser = async (data) => {
     try {
-      // Password check
-      setSubmitting(true)
+      setSubmitting(true);
 
       if (data.password !== data.cpassword) {
-        setErrorMessage("Passwords do not match")
+        setErrorMessage("Passwords do not match");
+        setSubmitting(false);
         return;
       }
 
-      const res = await authApi.createUser(data)
+      const res = await authApi.createUser(data);
 
       if (res.success && res.access_token) {
-        setSuccess(true)
-
-        tokenStorage.setToken(res.access_token)
-        setIsLoggedIn(true)
-        setUser(res.user)
-        navigate("/dashboard")
+        setSuccess(true);
+        tokenStorage.setToken(res.access_token);
+        setIsLoggedIn(true);
+        setUser(res.user);
+        navigate("/dashboard");
       } else {
-        throw new Error("Registration unsuccessfull")
+        throw new Error("Registration unsuccessful");
       }
-      setErrorMessage("")
-      setSubmitting(false)
+      setErrorMessage("");
+      setSubmitting(false);
     } catch (err) {
-      setSubmitting(false)
-      setSuccess(false)
+      setSubmitting(false);
+      setSuccess(false);
       if (err.response?.data?.detail) {
-        setErrorMessage(err.response.data.detail)
+        setErrorMessage(err.response.data.detail);
       } else {
-        setErrorMessage("Registration unsuccessfull! Please try later")
+        setErrorMessage("Registration unsuccessful! Please try later");
       }
     }
-  }
+  };
 
   if (isLoggedIn) {
     return <Navigate to="/" replace />;
   }
 
+  const fields = [
+    {
+      id: "sign-name",
+      name: "name",
+      type: "text",
+      label: "Full name",
+      placeholder: "Jane Doe",
+      autoComplete: "name",
+      icon: (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      ),
+      rules: { required: "Name is required" },
+    },
+    {
+      id: "sign-email",
+      name: "email",
+      type: "email",
+      label: "Email address",
+      placeholder: "you@example.com",
+      autoComplete: "email",
+      icon: (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+      rules: { required: "Email is required" },
+    },
+    {
+      id: "sign-password",
+      name: "password",
+      type: "password",
+      label: "Password",
+      placeholder: "••••••••",
+      autoComplete: "new-password",
+      icon: (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+      rules: {
+        required: "Password is required",
+        minLength: { value: 4, message: "Password must be at least 4 characters" },
+      },
+    },
+    {
+      id: "sign-c-password",
+      name: "cpassword",
+      type: "password",
+      label: "Confirm password",
+      placeholder: "••••••••",
+      autoComplete: "new-password",
+      icon: (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      rules: { required: "Please confirm your password" },
+    },
+  ];
+
   return (
-    <div className="login-form-container flex justify-center items-center h-screen gap-12">
-      <form onSubmit={ handleSubmit(registerUser) } className="login-form w-1/3 px-12 mt-12 py-8 rounded">
-        <h1 className="text-white text-2xl mb-4 font-bold">Join Drawing Board</h1>
-        <div className="relative z-0 w-full mb-5 group">
-          <input type="text" name="sign-name" id="sign-name" { ...register("name", { required: true }) } className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
-          <label htmlFor="sign-name" className="peer-focus:font-medium form-input absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Name</label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input type="email" name="sign-email" id="sign-email" { ...register("email", { required: true }) } className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
-          <label htmlFor="sign-email" className="peer-focus:font-medium form-input absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email address</label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input type="password" name="sign-password" id="sign-password" { ...register("password", {
-            required: true, minLength: {
-              value: 4,
-              message: "Password must be at least 4 characters"
-            }
-          }) } className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
-          <label htmlFor="sign-password" className="peer-focus:font-medium form-input absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Password</label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input type="password" name="sign-c-password" id="sign-c-password" { ...register("cpassword", { required: true }) } className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
-          <label htmlFor="sign-c-password" className="peer-focus:font-medium form-input absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Confirm Password</label>
-        </div>
+    <div className="auth-page">
+      {/* Background layers */}
+      <div className="auth-bg-glow auth-bg-glow--tl" aria-hidden="true" />
+      <div className="auth-bg-glow auth-bg-glow--br" aria-hidden="true" />
+      <div className="auth-bg-grid" aria-hidden="true" />
+      <div className="auth-scanlines" aria-hidden="true" />
 
-        { errors && <div className="errors mb-2">
-          <p className="text-[#ff8d8d]">{ errors.password && errors.password.message && <span>{ errors.password.message }</span> }</p>
-        </div> }
+      <div className="auth-container auth-container--signup">
+        {/* Form card (full-width on signup, centered) */}
+        <div className="auth-form-panel auth-form-panel--wide">
+          <div className="auth-card auth-card--wide">
+            <CornerBracket position="tl" />
+            <CornerBracket position="tr" />
+            <CornerBracket position="bl" />
+            <CornerBracket position="br" />
 
-        { errorMessage && <div className="errors mb-2">
-          <p className="text-[#ff8d8d]"><span>{ errorMessage }</span></p>
-        </div> }
-        { success && <div className="success mb-2">
-          <p className="text-[#7bd13c] font-bold"><span>Registration successfull</span></p>
-        </div> }
+            {/* Header */}
+            <div className="auth-card__header">
+              {/* Logo inline */}
+              <Link to="/" className="auth-inline-logo" aria-label="Home">
+                <div className="auth-brand-logo auth-brand-logo--sm">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                      stroke="#cc55e8"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span className="auth-inline-logo__text">Real time Drawing board</span>
+              </Link>
 
-        <div className="free-trial flex flex-wrap-reverse">
-          <p className="text-white mt-6 text-sm mr-8">Already a member? <Link to="/login" className="text-blue-400 hover:underline">Login</Link></p>
-          <button type="submit" className="free-trial-btn mt-4">{ submitting ? "Sign..." : "Sign Up" }</button>
+              <div className="auth-status-badge auth-status-badge--cyan">
+                <span className="auth-status-dot auth-status-dot--cyan" />
+                NEW ACCOUNT
+              </div>
+              <h1 className="auth-card__title">Create your account</h1>
+              <p className="auth-card__subtitle">
+                Start drawing and collaborating in real time — free forever
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit(registerUser)} className="auth-form auth-form--grid" noValidate>
+              {fields.map((field) => (
+                <div
+                  key={field.id}
+                  className={`auth-field ${focusedField === field.id ? "auth-field--focused" : ""}`}
+                >
+                  <label htmlFor={field.id} className="auth-field__label">
+                    {field.icon}
+                    {field.label}
+                  </label>
+                  <div className="auth-field__input-wrap">
+                    <input
+                      {...register(field.name, field.rules)}
+                      type={field.type}
+                      id={field.id}
+                      name={field.id}
+                      className="auth-field__input"
+                      placeholder={field.placeholder}
+                      autoComplete={field.autoComplete}
+                      onFocus={() => setFocusedField(field.id)}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                    <div className="auth-field__line" />
+                  </div>
+                  {errors[field.name]?.message && (
+                    <span className="auth-field__error">{errors[field.name].message}</span>
+                  )}
+                </div>
+              ))}
+
+              {/* Feedback — spans both columns */}
+              {errorMessage && (
+                <div className="auth-alert auth-alert--error auth-alert--span" role="alert">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                    <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  {errorMessage}
+                </div>
+              )}
+              {success && (
+                <div className="auth-alert auth-alert--success auth-alert--span" role="status">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Account created — redirecting…
+                </div>
+              )}
+
+              {/* Submit + link row — spans both columns */}
+              <div className="auth-form__footer">
+                <button
+                  type="submit"
+                  id="signup-submit-btn"
+                  className="free-trial-btn auth-submit-btn"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="auth-spinner" aria-hidden="true" />
+                      Creating account…
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </button>
+                <p className="auth-switch">
+                  Already a member?{" "}
+                  <Link to="/login" className="auth-switch__link" id="goto-login-link">
+                    Sign in
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
-      <img className='login-image w-1/5' src={ registerImg2 } alt="" />
+      </div>
     </div>
-  )
+  );
 }
 
-export default SignupForm
+export default SignupForm;
