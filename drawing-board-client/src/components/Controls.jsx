@@ -46,7 +46,7 @@ function Controls({ fileId, userId }) {
     const { emit } = useSocket();
     const eraserRef = useRef(null);
     const [uploading, setUploading] = useState(false);
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
 
     const resetAllTools = () => {
         setIsPen(false); setIsPanning(false); setEraser(false);

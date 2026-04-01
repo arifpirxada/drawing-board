@@ -1220,6 +1220,7 @@ function Editor({ fileId, userId, fileData }) {
                         <Arrow
                             key={ item.id }
                             id={ item.id }
+                            hitStrokeWidth={20}
                             shapeType="arrowline"
                             className="selectable"
                             points={ item.points }
@@ -1245,6 +1246,7 @@ function Editor({ fileId, userId, fileData }) {
                         <Line
                             key={ line.id }
                             id={ line.id }
+                            hitStrokeWidth={20}
                             shapeType="line"
                             className="selectable"
                             points={ line.points }

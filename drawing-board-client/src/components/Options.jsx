@@ -92,6 +92,7 @@ function Options() {
                         {(!line && !arrowLine) && (
                             <>
                                 <div className="options-divider options-divider--v" />
+                                <span className="options-label">BG</span>
                                 <div className="color-picker-wrap">
                                     <input type="color" value={bgColor} id="color-option-background"
                                         className="color-picker-input"

@@ -13,7 +13,7 @@ export const StateProvider = ({ children }) => {
     const [isDrawing, setIsDrawing] = useState(false);
 
     const [lineWidth, setLineWidth] = useState(5);
-    const [strokeWidth, setStrokeWidth] = useState(5);
+    const [strokeWidth, setStrokeWidth] = useState(2);
     const [color, setColor] = useState("white");
     const [strokeColor, setStrokeColor] = useState("white");
     const [bgColor, setBgColor] = useState("#ffffff00");
