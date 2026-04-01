@@ -24,6 +24,8 @@ const ColorDot = ({ c, active, onClick, style = {} }) => (
     />
 );
 
+
+
 function Options() {
     const {
         setColor, isPen, isPanning, color,
@@ -38,6 +40,7 @@ function Options() {
     } = useContext(StateContext);
 
     const invisible = eraser || isMouse || isPanning;
+
     if (invisible) return null;
 
     return (
@@ -93,8 +96,25 @@ function Options() {
                             <>
                                 <div className="options-divider options-divider--v" />
                                 <span className="options-label">BG</span>
+                                
+                                <button type="button" 
+                                    className={`color-dot${bgColor === "transparent" ? " color-dot--active" : ""}`}
+                                    onClick={() => setBgColor("transparent")}
+                                    title="No color"
+                                    style={{ 
+                                        background: "transparent", 
+                                        display: "flex", 
+                                        justifyContent: "center", 
+                                        alignItems: "center" 
+                                    }}
+                                >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="2" y1="22" x2="22" y2="2" />
+                                    </svg>
+                                </button>
+
                                 <div className="color-picker-wrap">
-                                    <input type="color" value={bgColor} id="color-option-background"
+                                    <input type="color" value={bgColor === "transparent" ? "#ffffff" : bgColor} id="color-option-background"
                                         className="color-picker-input"
                                         onChange={e => setBgColor(e.target.value)} />
                                     <label htmlFor="color-option-background" className="color-dot color-dot--picker color-dot--fill" title="Fill color">
