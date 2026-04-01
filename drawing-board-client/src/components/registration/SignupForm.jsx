@@ -192,7 +192,6 @@ function SignupForm() {
                       {...register(field.name, field.rules)}
                       type={field.type}
                       id={field.id}
-                      name={field.id}
                       className="auth-field__input"
                       placeholder={field.placeholder}
                       autoComplete={field.autoComplete}

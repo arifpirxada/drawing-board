@@ -105,8 +105,8 @@ function Editor({ fileId, userId, fileData }) {
                         y={ y }
                         width={ CELL_WIDTH }
                         height={ CELL_HEIGHT }
-                        fill="#282828"
-                        stroke="#a99c9c99"
+                        fill="#121212"
+                        stroke="#1E1E1E"
                         strokeWidth={ gridView ? 1 : 0 }
                     />
                 );
@@ -497,39 +497,39 @@ function Editor({ fileId, userId, fileData }) {
     // Load File Data
 
     useEffect(() => {
-    if (!fileData) return
+        if (!fileData) return
 
-    fileData.lines && setLines(fileData.lines)
-    fileData.arrowLines && setArrowLines(fileData.arrowLines) 
-    fileData.rectangles && setRectangles(fileData.rectangles)
-    fileData.triangles && setTriangles(fileData.triangles)  
-    fileData.circles && setCircles(fileData.circles)
-    fileData.texts && setTexts(fileData.texts)
+        fileData.lines && setLines(fileData.lines)
+        fileData.arrowLines && setArrowLines(fileData.arrowLines)
+        fileData.rectangles && setRectangles(fileData.rectangles)
+        fileData.triangles && setTriangles(fileData.triangles)
+        fileData.circles && setCircles(fileData.circles)
+        fileData.texts && setTexts(fileData.texts)
 
-    if (fileData.images) {
-        const baseURL = import.meta.env.VITE_SERVER_URL;
-        if (baseURL) {
-            setImages([]);
-            
-            fileData.images.forEach((img) => {
-                const image = new Image();
-                const imageUrl = baseURL + "/uploads/" + img.name;
+        if (fileData.images) {
+            const baseURL = import.meta.env.VITE_SERVER_URL;
+            if (baseURL) {
+                setImages([]);
 
-                image.onload = () => {
-                    setImages((prev) => {
-                        const alreadyExists = prev.some((p) => p.id === img.id);
-                        if (alreadyExists) return prev;
-                        return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
-                    });
-                }
+                fileData.images.forEach((img) => {
+                    const image = new Image();
+                    const imageUrl = baseURL + "/uploads/" + img.name;
 
-                image.src = imageUrl;
-            })
+                    image.onload = () => {
+                        setImages((prev) => {
+                            const alreadyExists = prev.some((p) => p.id === img.id);
+                            if (alreadyExists) return prev;
+                            return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
+                        });
+                    }
+
+                    image.src = imageUrl;
+                })
+            }
         }
-    }
 
-}, [fileData])
-    
+    }, [fileData])
+
     const layerRef = useRef(null);
 
     const [selectedShape, setSelectedShape] = useState(null);
@@ -610,7 +610,7 @@ function Editor({ fileId, userId, fileData }) {
         const node = e.target;
 
         const x = node.x();
-        const y = node.y(); 
+        const y = node.y();
 
         emit('drag_shape', { room: fileId, id: shapeId, shapeType, x, y })
     }
@@ -1077,9 +1077,9 @@ function Editor({ fileId, userId, fileData }) {
                 onDragEnd={ (e) => {
                     setStagePos(e.currentTarget.position());
                 } }
-                onMouseDown={ handleMouseDown }
-                onMouseMove={ handleMouseMove }
-                onMouseUp={ handleMouseUp }
+                onPointerDown={ handleMouseDown }
+                onPointerMove={ handleMouseMove }
+                onPointerUp={ handleMouseUp }
             >
                 <Layer
                     name='grid'
@@ -1314,19 +1314,24 @@ function Editor({ fileId, userId, fileData }) {
                 rows={ 1 }
             />
             {/* Zoom Controls */ }
-            <div style={ {
-                position: 'absolute',
-                left: 20,
-                bottom: 20,
-                zIndex: 1000,
-                display: 'flex',
-                gap: '20px',
-                color: "#fff"
-            } }>
-                <button onClick={ zoomIn }>Zoom In (+)</button>
-                <button onClick={ zoomOut }>Zoom Out (-)</button>
-                <button onClick={ resetZoom }>Reset</button>
-                <div>Scale: { stageScale.toFixed(2) }x</div>
+            <div className="zoom-bar">
+                <button onClick={ zoomOut } className="zoom-btn" aria-label="Zoom out" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                </button>
+                <span className="zoom-scale">{ Math.round(stageScale * 100) }%</span>
+                <button onClick={ zoomIn } className="zoom-btn" aria-label="Zoom in" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                </button>
+                <div className="zoom-divider" />
+                <button onClick={ resetZoom } className="zoom-btn zoom-btn--reset" aria-label="Reset zoom" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.2" />
+                    </svg>
+                </button>
             </div>
         </div>
     );
