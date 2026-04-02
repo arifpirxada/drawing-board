@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 const StateContext = createContext();
 
@@ -41,7 +41,14 @@ export const StateProvider = ({ children }) => {
 
     // Grid
 
-    const [gridView, setGridView] = useState(false);
+    const [gridView, setGridView] = useState(() => {
+        const localView = localStorage.getItem("gridView");
+        return localView === "true";
+    });
+
+    useEffect(() => {
+        localStorage.setItem("gridView", gridView);
+    }, [gridView]);
 
     return (
         <StateContext.Provider value={ {
