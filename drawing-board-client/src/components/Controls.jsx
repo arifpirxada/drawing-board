@@ -38,7 +38,7 @@ function Controls({ fileId, userId }) {
         line, arrowLine, rectangle, triangle, circle,
         setLine, setArrowLine, setRectangle, setTriangle, setCircle,
         isMouse, setIsMouse,
-        setImages,
+        setShapes,
         setIsEditing,
         gridView, setGridView
     } = useContext(StateContext);
@@ -83,7 +83,7 @@ function Controls({ fileId, userId }) {
             const imageUrl = res.data.url;
             const imageName = res.data.secure_filename;
             const image = new Image();
-            image.onload = () => setImages(prev => [...prev, { id, userId, image, url: imageUrl }]);
+            image.onload = () => setShapes(prev => [...prev, { type: "image", id, userId, image, url: imageUrl }]);
             image.src = imageUrl;
             emit('add_image', { room: fileId, userId, id, name: imageName });
         } catch (err) {

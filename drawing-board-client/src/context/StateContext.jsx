@@ -5,12 +5,13 @@ const StateContext = createContext();
 export const StateProvider = ({ children }) => {
     const [isMouse, setIsMouse] = useState(false);
 
+    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+    const [isDrawing, setIsDrawing] = useState(false);
+
+    // ******** Controls *******
     // Pen states
     const [isPen, setIsPen] = useState(true);
     const [isPanning, setIsPanning] = useState(false);
-
-    const [mouse, setMouse] = useState({ x: 0, y: 0 });
-    const [isDrawing, setIsDrawing] = useState(false);
 
     const [lineWidth, setLineWidth] = useState(5);
     const [strokeWidth, setStrokeWidth] = useState(2);
@@ -29,15 +30,11 @@ export const StateProvider = ({ children }) => {
     const [circle, setCircle] = useState(false);
 
     // Text
-    const [texts, setTexts] = useState([]);
     const [textFont, setTextFont] = useState('Handlee')
     const [textFontSize, setTextFontSize] = useState(24)
 
     const [isEditing, setIsEditing] = useState(false);
     const [editingText, setEditingText] = useState('');
-
-    // Image
-    const [images, setImages] = useState([]);
 
     // Grid
 
@@ -50,48 +47,28 @@ export const StateProvider = ({ children }) => {
         localStorage.setItem("gridView", gridView);
     }, [gridView]);
 
+    // ******* Shapes *********
+    // const [texts, setTexts] = useState([]);
+    // const [images, setImages] = useState([]);
+
+    const [shapes, setShapes] = useState([]);
+
     return (
         <StateContext.Provider value={ {
-            isPen,
-            setIsPen,
+            isPen, setIsPen,
             isPanning, setIsPanning,
-            mouse,
-            isDrawing,
-            setMouse,
-            setIsDrawing,
-            lineWidth,
-            strokeWidth,
-            setLineWidth,
-            setStrokeWidth,
-            color,
-            strokeColor,
-            bgColor,
-            setColor,
-            setStrokeColor,
-            setBgColor,
-            eraser,
-            setEraser,
-            line,
-            setLine,
-            arrowLine,
-            setArrowLine,
-            rectangle,
-            setRectangle,
-            triangle,
-            setTriangle,
-            circle,
-            setCircle,
-            isMouse,
-            setIsMouse,
-            texts,
-            setTexts,
-            images,
-            setImages,
-            textFont, setTextFont,
-            textFontSize, setTextFontSize,
-            isEditing, setIsEditing,
-            editingText, setEditingText,
-            gridView, setGridView
+            mouse, setMouse,
+            isDrawing, setIsDrawing,
+            lineWidth, strokeWidth, setLineWidth, setStrokeWidth,
+            color, strokeColor, bgColor, setColor, setStrokeColor, setBgColor,
+            eraser, setEraser,
+            line, setLine, arrowLine, setArrowLine,
+            rectangle, setRectangle, triangle, setTriangle, circle, setCircle,
+            isMouse, setIsMouse,
+            textFont, setTextFont, textFontSize, setTextFontSize,
+            isEditing, setIsEditing, editingText, setEditingText,
+            gridView, setGridView,
+            shapes, setShapes
         } }>
             { children }
         </StateContext.Provider>

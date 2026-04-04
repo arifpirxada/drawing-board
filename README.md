@@ -111,3 +111,5 @@ http://localhost:8000/
 
 - Layering
 - Refac
+- Control Keys (Shortcuts)
+- Undo / Redo
