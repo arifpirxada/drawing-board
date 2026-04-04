@@ -497,6 +497,14 @@ function Editor({ fileId, userId, fileData }) {
     // Load File Data
 
     useEffect(() => {
+        setLines([]);
+        setArrowLines([]);
+        setRectangles([]);
+        setTriangles([]);
+        setCircles([]);
+        setTexts([]);
+        setImages([]);
+
         if (!fileData) return
 
         fileData.lines && setLines(fileData.lines)
@@ -509,8 +517,6 @@ function Editor({ fileId, userId, fileData }) {
         if (fileData.images) {
             const baseURL = import.meta.env.VITE_SERVER_URL;
             if (baseURL) {
-                setImages([]);
-
                 fileData.images.forEach((img) => {
                     const image = new Image();
                     const imageUrl = baseURL + "/uploads/" + img.name;
