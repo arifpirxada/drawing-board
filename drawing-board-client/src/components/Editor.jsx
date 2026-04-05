@@ -96,11 +96,6 @@ function Editor({ fileId, userId, fileData }) {
         return components;
     }, [gridView, stagePos.x, stagePos.y, stageScale])
 
-    useEffect(() => {
-        console.log(shapes)
-        console.log("len: ", shapes.length)
-    }, [shapes])
-
     // Socket events
 
     useEffect(() => {
