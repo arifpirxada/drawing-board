@@ -1,4 +1,4 @@
-export const useTransform = () => {
+export const useTransform = ({ emit, fileId }) => {
     const handleTransformEnd = (e, shapeId, shapeType) => {
         const node = e.target;
 

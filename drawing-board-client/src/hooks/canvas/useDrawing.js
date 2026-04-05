@@ -1,44 +1,46 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { generateShapeId } from "../../utils/generateShapeId";
 
 export const useDrawing = ({
-    isPen, line, rectangle, rectangle, circle, arrowLine
+    isPen, line, rectangle, triangle, circle, arrowLine,
+    color, bgColor, strokeColor, lineWidth, strokeWidth,
+    shapes, setShapes, fileId, userId, emit
 }) => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [activeDrawings, setActiveDrawings] = useState(new Map());
     const activeDrawingsRef = useRef(activeDrawings);
 
-    const handleMouseDown = () => {
+    const handleMouseDown = (pos) => {
         setIsDrawing(true);
-        const id = generateShapeId();
+        const id = generateShapeId(userId);
         setActiveDrawings(prev => new Map(prev).set(userId, id));
 
 
         if (isPen) {
-            setShapes([...shapes, { id, userId, type: 'line', points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
+            setShapes(prev => [...prev, { id, userId, type: 'line', points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'line', points: [pos.x, pos.y], fill: color, strokeWidth: lineWidth, scaleX: 1, scaleY: 1, rotation: 0 });
         } else if (line) {
-            setShapes([...shapes, { id, userId, type: 'straight_line', points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setShapes(prev => [...prev, { id, userId, type: 'straight_line', points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'straight_line', points: [pos.x, pos.y], fill: color, strokeWidth })
         } else if (rectangle) {
-            setShapes([...shapes, { id, userId, type: 'rectangle', x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setShapes(prev => [...prev, { id, userId, type: 'rectangle', x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'rectangle', x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
-        } else if (rectangle) {
-            setShapes([...shapes, { id, userId, type: 'triangle', points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+        } else if (triangle) {
+            setShapes(prev => [...prev, { id, userId, type: 'triangle', points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'triangle', points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (circle) {
-            setShapes([...shapes, { id, userId, type: 'circle', x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            setShapes(prev => [...prev, { id, userId, type: 'circle', x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'circle', x: pos.x, y: pos.y, radius: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (arrowLine) {
-            setShapes([...shapes, { id, userId, type: 'arrow_line', points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
+            setShapes(prev => [...prev, { id, userId, type: 'arrow_line', points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'arrow_line', points: [pos.x, pos.y, pos.x, pos.y], fill: strokeColor, strokeWidth })
         }
     }
 
-    const handleMouseMove = () => {
+    const handleMouseMove = (point) => {
         if (!isDrawing) return;
 
-        activeShapeId = activeDrawings.get(userId);
+        const activeShapeId = activeDrawings.get(userId);
         if (!activeShapeId) return;
 
         if (isPen) {

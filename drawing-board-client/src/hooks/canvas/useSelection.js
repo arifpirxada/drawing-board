@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react";
+import Konva from "konva";
 
 export const useSelection = ({ layerRef }) => {
     const [isSelecting, setIsSelecting] = useState(false);
@@ -103,6 +104,7 @@ export const useSelection = ({ layerRef }) => {
     return {
         selectionHandlers,
         selectionRef, transformerRef,
+        selectionRect, selectedShape, selectedShapes,
         handleSelect
     }
 }

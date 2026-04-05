@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { getWorldPosition } from "../../utils/getWorldPosition";
 
 export const useCanvasMouseHandlers = ({
   stageRef,
   eraser, isMouse, isEditing, isPanning,
-  drawingHandlers, eraserHandlers, selectionHandlers, textHandlers,
+  drawingHandlers, eraserHandlers, selectionHandlers, textHandlers, setCursor
 }) => {
 
   const [mode, setMode] = useState(""); // 'eraser' | 'select' | 'draw'
@@ -13,7 +13,7 @@ export const useCanvasMouseHandlers = ({
     const stage = e.target.getStage();
     const pos = getWorldPosition(stage);
 
-    textHandlers.onMouseDown(pos);
+    textHandlers.onMouseDown(e);
 
     if (mode === 'eraser') return eraserHandlers.onMouseDown(e);
     if (mode === 'select' && e.target === stageRef.current) return selectionHandlers.onMouseDown(pos);
@@ -38,7 +38,7 @@ export const useCanvasMouseHandlers = ({
 
   useEffect(() => {
     if (eraser) {
-      setCursor('cursor-none')
+      setCursor('cursor-eraser')
       setMode("eraser");
     } else if (isMouse) {
       setCursor('cursor-default');
@@ -51,9 +51,9 @@ export const useCanvasMouseHandlers = ({
       setMode("");
     } else {
       setCursor('cursor-crosshair');
-      setMode("");
+      setMode("draw");
     }
-  }, [eraser, isMouse, isEditing, isPanning]);
+  }, [eraser, isMouse, isEditing, isPanning, setCursor]);
 
   return { handleMouseDown, handleMouseMove, handleMouseUp };
 };

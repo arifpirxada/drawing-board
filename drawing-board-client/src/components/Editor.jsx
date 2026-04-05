@@ -3,15 +3,14 @@ import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import StateContext from '../context/StateContext';
 import useSocket from '../features/socketio/useSocket';
 import { ShapeRenderer } from './Filepage/ShapeRenderer';
-import { throttle } from '../utils/throttle';
-import { getWorldPosition } from '../utils/getWorldPosition';
 import ZoomControls from './Filepage/ZoomControls';
 import { useDrawing } from '../hooks/canvas/useDrawing';
 import { useEraser } from '../hooks/canvas/useEraser';
 import { useSelection } from '../hooks/canvas/useSelection';
 import { useTextEditing } from '../hooks/canvas/useTextEditing';
 import { useCanvasMouseHandlers } from '../hooks/canvas/useCanvasMouseHandlers';
-
+import { useDrag } from '../hooks/canvas/useDrag';
+import { useTransform } from '../hooks/canvas/useTransform';
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 100;
 
@@ -19,8 +18,6 @@ function Editor({ fileId, userId, fileData }) {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
 
-    const [activeDrawings, setActiveDrawings] = useState(new Map());
-    const activeDrawingsRef = useRef(activeDrawings);
 
     const [cursor, setCursor] = useState('cursor-crosshair')
     const stageRef = useRef(null);
@@ -28,31 +25,40 @@ function Editor({ fileId, userId, fileData }) {
     const layerRef = useRef(null);
 
     const {
-        isMouse, setIsMouse, setMouse, isPen, isPanning,
-        isDrawing, setIsDrawing,
+        isMouse, setIsMouse, isPen, isPanning,
         lineWidth, strokeWidth, strokeColor,
         textFont, textFontSize,
         color, bgColor,
         line, arrowLine, rectangle, triangle, circle, eraser,
-        // isEditing, setIsEditing, editingText, setEditingText,
         gridView,
-        shapes, setShapes
+        shapes, setShapes,
+        isEditing, setIsEditing
     } = useContext(StateContext);
 
     const { emit, on, off } = useSocket();
 
     // .
 
-    const { drawingHandlers } = useDrawing({ isPen, line, rectangle, rectangle, circle, arrowLine });
-    const { eraserHandlers } = useEraser({ setShapes, fileId });
-    const { selectionHandlers, transformerRef } = useSelection({ layerRef })
-    const { textHandlers, isEditing } = useTextEditing({ setShapes, textareaRef });
+    const { drawingHandlers, activeDrawings, activeDrawingsRef } = useDrawing({
+        isPen, line, rectangle, triangle, circle, arrowLine,
+        color, bgColor, strokeColor, lineWidth, strokeWidth,
+        shapes, setShapes, fileId, userId, emit
+    });
+    const { eraserHandlers } = useEraser({ setShapes, fileId, emit });
+    const { selectionHandlers, selectionRef, transformerRef, handleSelect, selectionRect, selectedShape, selectedShapes } = useSelection({ layerRef })
+    const { textHandlers, handleTextChange, handleSaveText, editingText } = useTextEditing({
+        setShapes, textareaRef, color, textFont, textFontSize,
+        userId, fileId, emit, setIsMouse, isEditing, setIsEditing
+    });
+    const { handleDragStart, handleDragMove, handleDragEnd } = useDrag({ emit, fileId });
+    const { handleTransformEnd } = useTransform({ emit, fileId });
 
     const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseHandlers({
         stageRef,
         eraser, isMouse, isEditing, isPanning,
-        drawingHandlers, eraserHandlers, selectionHandlers, textHandlers
-    })
+        drawingHandlers, eraserHandlers, selectionHandlers, textHandlers,
+        setCursor
+    });
 
     // Infinite canvas
 
@@ -226,6 +232,7 @@ function Editor({ fileId, userId, fileData }) {
 
             const image = new Image();
             const imageData = {
+                type: "image",
                 id: data.id,
                 userId: data.userId,
                 image,
@@ -252,46 +259,19 @@ function Editor({ fileId, userId, fileData }) {
         }
 
         const transformShape = (data) => {
-            const stateMap = {
-                'line': setLines,
-                'rectangle': setRectangles,
-                'triangle': setTriangles,
-                'circle': setCircles,
-                'arrowline': setArrowLines,
-                'image': setImages,
-                'text': setTexts
-            };
-
-            const setter = stateMap[data.shapeType];
-            if (setter) {
-                setter(prev => prev.map(shape =>
-                    shape.id === data.id
-                        ? { ...shape, scaleX: data.scaleX, scaleY: data.scaleY, rotation: data.rotation, x: data.x, y: data.y }
-                        : shape
-                ));
-            }
-
+            setShapes(prev => prev.map(shape =>
+                shape.id === data.id
+                    ? { ...shape, scaleX: data.scaleX, scaleY: data.scaleY, rotation: data.rotation, x: data.x, y: data.y }
+                    : shape
+            ));
         }
 
         const dragShape = (data) => {
-            const stateMap = {
-                'line': setLines,
-                'rectangle': setRectangles,
-                'triangle': setTriangles,
-                'circle': setCircles,
-                'arrowline': setArrowLines,
-                'image': setImages,
-                'text': setTexts
-            };
-
-            const setter = stateMap[data.shapeType];
-            if (setter) {
-                setter(prev => prev.map(shape =>
-                    shape.id === data.id
-                        ? { ...shape, x: data.x, y: data.y }
-                        : shape
-                ));
-            }
+            setShapes(prev => prev.map(shape =>
+                shape.id === data.id
+                    ? { ...shape, x: data.x, y: data.y }
+                    : shape
+            ));
         }
 
         const handleDraw = (data) => {
@@ -345,16 +325,12 @@ function Editor({ fileId, userId, fileData }) {
 
 
         // Other
-        on('drawing_complte', drawingComplete)
+        on('drawing_complete', drawingComplete)
         on('transform_shape', transformShape);
         on('drag_shape', dragShape);
 
         return () => {
-            off('drawing_complte', drawingComplete)
-            off('transform_shape', transformShape);
-            off('drag_shape', dragShape);
-
-            off('drawing_complte', drawingComplete)
+            off('drawing_complete', drawingComplete)
             off('transform_shape', transformShape);
             off('drag_shape', dragShape);
         };
@@ -362,39 +338,41 @@ function Editor({ fileId, userId, fileData }) {
 
     // Load File Data
 
-    // useEffect(() => {
-    //     setShapes([]);
+    useEffect(() => {
+        setShapes([]);
 
-    //     if (!fileData) return
+        if (!fileData) return
 
-    //     fileData.lines && setLines(fileData.lines)
-    //     fileData.arrowLines && setArrowLines(fileData.arrowLines)
-    //     fileData.rectangles && setRectangles(fileData.rectangles)
-    //     fileData.triangles && setTriangles(fileData.triangles)
-    //     fileData.circles && setCircles(fileData.circles)
-    //     fileData.texts && setTexts(fileData.texts)
+        let loadedShapes = [];
+        if (fileData.lines) loadedShapes = [...loadedShapes, ...fileData.lines];
+        if (fileData.arrowLines) loadedShapes = [...loadedShapes, ...fileData.arrowLines];
+        if (fileData.rectangles) loadedShapes = [...loadedShapes, ...fileData.rectangles];
+        if (fileData.triangles) loadedShapes = [...loadedShapes, ...fileData.triangles];
+        if (fileData.circles) loadedShapes = [...loadedShapes, ...fileData.circles];
+        if (fileData.texts) loadedShapes = [...loadedShapes, ...fileData.texts];
 
-    //     if (fileData.images) {
-    //         const baseURL = import.meta.env.VITE_SERVER_URL;
-    //         if (baseURL) {
-    //             fileData.images.forEach((img) => {
-    //                 const image = new Image();
-    //                 const imageUrl = baseURL + "/uploads/" + img.name;
+        if (fileData.images) {
+            const baseURL = import.meta.env.VITE_SERVER_URL;
+            if (baseURL) {
+                fileData.images.forEach((img) => {
+                    const image = new Image();
+                    const imageUrl = baseURL + "/uploads/" + img.name;
 
-    //                 image.onload = () => {
-    //                     setImages((prev) => {
-    //                         const alreadyExists = prev.some((p) => p.id === img.id);
-    //                         if (alreadyExists) return prev;
-    //                         return [...prev, { id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
-    //                     });
-    //                 }
+                    image.onload = () => {
+                        setShapes((prev) => {
+                            const alreadyExists = prev.some((p) => p.id === img.id);
+                            if (alreadyExists) return prev;
+                            return [...prev, { type: "image", id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
+                        });
+                    }
 
-    //                 image.src = imageUrl;
-    //             })
-    //         }
-    //     }
+                    image.src = imageUrl;
+                })
+            }
+        }
 
-    // }, [fileData])
+        setShapes(prev => [...prev, ...loadedShapes]);
+    }, [fileData])
 
 
     return (
@@ -423,7 +401,16 @@ function Editor({ fileId, userId, fileData }) {
                 </Layer>
                 <Layer ref={ layerRef }>
                     { shapes.map((shape) => (
-                        ShapeRenderer(shape)
+                        <ShapeRenderer
+                            key={ shape.id }
+                            shape={ shape }
+                            isMouse={ isMouse }
+                            handleSelect={ handleSelect }
+                            handleDragStart={ handleDragStart }
+                            handleDragMove={ handleDragMove }
+                            handleDragEnd={ handleDragEnd }
+                            handleTransformEnd={ handleTransformEnd }
+                        />
                     )) }
                 </Layer>
                 <Layer
@@ -460,7 +447,7 @@ function Editor({ fileId, userId, fileData }) {
             </Stage>
             <textarea
                 ref={ textareaRef }
-                className='hidden bg-transparent overflow-hidden resize-x absolute border border-white outline-none py-1 px-3 rounded-sm'
+                className='hidden bg-transparent overflow-hidden resize-x absolute border border-gray-500 outline-none py-1 px-3 rounded-sm'
                 value={ editingText }
                 onChange={ handleTextChange }
                 onBlur={ handleSaveText }
@@ -474,7 +461,7 @@ function Editor({ fileId, userId, fileData }) {
                 } }
                 rows={ 1 }
             />
-            <ZoomControls stageRef={ stageRef } setStageScale={ setStageScale } />
+            <ZoomControls stageRef={ stageRef } stageScale={ stageScale } setStageScale={ setStageScale } setStagePos={ setStagePos } />
         </div>
     );
 }

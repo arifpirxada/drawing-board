@@ -1,26 +1,26 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { generateShapeId } from "../../utils/generateShapeId";
 
-export const useTextEditing = ({ setShapes, textareaRef }) => {
-    const [isEditing, setIsEditing] = useState(false);
+export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFontSize, userId, fileId, emit, setIsMouse, isEditing, setIsEditing }) => {
     const [editingText, setEditingText] = useState("");
 
     const handleSaveText = () => {
         if (editingText !== '') {
-            const id = generateShapeId();
+            const id = generateShapeId(userId);
             const rect = textareaRef.current.getBoundingClientRect();
-            setShapes([...shapes, { id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
+            setShapes(prev => [...prev, { type: "text", id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
 
-            emit('draw_shape', { room: fileId, id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top })
+            emit('draw_shape', { room: fileId, id, userId, type: "text", text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top })
         }
         textareaRef.current.classList.add("hidden")
         setEditingText('');
         setIsMouse(true);
         autoResizeTextarea();
     }
-    
-    const handleMouseDown = (pos) => {
+
+    const handleMouseDown = (e) => {
         if (isEditing) {
+            const pos = e.target.getStage().getPointerPosition();
             textareaRef.current.style.left = `${pos.x}px`
             textareaRef.current.style.top = `${pos.y}px`
             textareaRef.current.classList.remove('hidden')
@@ -46,11 +46,16 @@ export const useTextEditing = ({ setShapes, textareaRef }) => {
     }
 
     const textHandlers = {
-        onMouseDown: (pos) => handleMouseDown(pos)
+        onMouseDown: (e) => handleMouseDown(e)
     }
+
+    useEffect(() => {
+        console.log("Text: ", editingText)
+        console.log("Textarea value: ", textareaRef.current.value)
+    }, [editingText])
 
     return {
         textHandlers,
-        handleTextChange
+        handleTextChange, handleSaveText
     }
 }

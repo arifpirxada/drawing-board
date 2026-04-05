@@ -1,6 +1,6 @@
-const ZoomControls = () => {
+const ZoomControls = ({ stageRef, stageScale, setStageScale, setStagePos }) => {
 
-    const zoomIn = ({ stageRef, setStageScale }) => {
+    const zoomIn = () => {
         const stage = stageRef.current;
         const oldScale = stage.scaleX();
         const newScale = Math.min(2.5, oldScale + 0.25);

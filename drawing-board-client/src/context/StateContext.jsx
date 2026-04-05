@@ -5,7 +5,6 @@ const StateContext = createContext();
 export const StateProvider = ({ children }) => {
     const [isMouse, setIsMouse] = useState(false);
 
-    const [mouse, setMouse] = useState({ x: 0, y: 0 });
     const [isDrawing, setIsDrawing] = useState(false);
 
     // ******** Controls *******
@@ -34,7 +33,6 @@ export const StateProvider = ({ children }) => {
     const [textFontSize, setTextFontSize] = useState(24)
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editingText, setEditingText] = useState('');
 
     // Grid
 
@@ -57,7 +55,6 @@ export const StateProvider = ({ children }) => {
         <StateContext.Provider value={ {
             isPen, setIsPen,
             isPanning, setIsPanning,
-            mouse, setMouse,
             isDrawing, setIsDrawing,
             lineWidth, strokeWidth, setLineWidth, setStrokeWidth,
             color, strokeColor, bgColor, setColor, setStrokeColor, setBgColor,
@@ -66,9 +63,9 @@ export const StateProvider = ({ children }) => {
             rectangle, setRectangle, triangle, setTriangle, circle, setCircle,
             isMouse, setIsMouse,
             textFont, setTextFont, textFontSize, setTextFontSize,
-            isEditing, setIsEditing, editingText, setEditingText,
             gridView, setGridView,
-            shapes, setShapes
+            shapes, setShapes,
+            isEditing, setIsEditing
         } }>
             { children }
         </StateContext.Provider>

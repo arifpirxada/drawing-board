@@ -1,4 +1,4 @@
-export const useDrag = () => {
+export const useDrag = ({ emit, fileId }) => {
     const handleDragStart = (e) => {
         e.target.moveToTop();
     };

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { throttle } from "../../utils/throttle";
 
-export const useEraser = ({ setShapes, fileId }) => {
+export const useEraser = ({ setShapes, fileId, emit }) => {
     const [isErasing, setIsErasing] = useState(false);
 
     const deleteAtPoint = (e) => {
