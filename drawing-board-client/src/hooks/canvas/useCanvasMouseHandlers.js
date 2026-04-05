@@ -3,8 +3,8 @@ import { getWorldPosition } from "../../utils/getWorldPosition";
 
 export const useCanvasMouseHandlers = ({
   stageRef,
-  eraser, isMouse, isEditing, isPanning,
-  drawingHandlers, eraserHandlers, selectionHandlers, textHandlers, setCursor
+  eraser, isMouse, isEditing, isPanning, setIsEditing,
+  drawingHandlers, eraserHandlers, selectionHandlers, textHandlers, setCursor, resetAllTools
 }) => {
 
   const [mode, setMode] = useState(""); // 'eraser' | 'select' | 'draw'
@@ -35,6 +35,13 @@ export const useCanvasMouseHandlers = ({
     if (mode === 'draw') return drawingHandlers.onMouseUp();
   }, [mode, eraserHandlers, selectionHandlers, drawingHandlers, textHandlers]);
 
+  const handleDblClick = (e) => {
+    if (!isMouse) return;
+    resetAllTools();
+    setIsEditing(true);
+    textHandlers.onMouseDown(e, true);
+  }
+
 
   useEffect(() => {
     if (eraser) {
@@ -55,5 +62,5 @@ export const useCanvasMouseHandlers = ({
     }
   }, [eraser, isMouse, isEditing, isPanning, setCursor]);
 
-  return { handleMouseDown, handleMouseMove, handleMouseUp };
+  return { handleMouseDown, handleMouseMove, handleMouseUp, handleDblClick };
 };

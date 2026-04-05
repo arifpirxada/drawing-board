@@ -32,7 +32,7 @@ function Editor({ fileId, userId, fileData }) {
         line, arrowLine, rectangle, triangle, circle, eraser,
         gridView,
         shapes, setShapes,
-        isEditing, setIsEditing
+        isEditing, setIsEditing, resetAllTools
     } = useContext(StateContext);
 
     const { emit, on, off } = useSocket();
@@ -46,18 +46,18 @@ function Editor({ fileId, userId, fileData }) {
     });
     const { eraserHandlers } = useEraser({ setShapes, fileId, emit });
     const { selectionHandlers, selectionRef, transformerRef, handleSelect, selectionRect, selectedShape, selectedShapes } = useSelection({ layerRef })
-    const { textHandlers, handleTextChange, handleSaveText, editingText } = useTextEditing({
+    const { textHandlers, handleTextChange, handleSaveText } = useTextEditing({
         setShapes, textareaRef, color, textFont, textFontSize,
         userId, fileId, emit, setIsMouse, isEditing, setIsEditing
     });
     const { handleDragStart, handleDragMove, handleDragEnd } = useDrag({ emit, fileId });
     const { handleTransformEnd } = useTransform({ emit, fileId });
 
-    const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseHandlers({
+    const { handleMouseDown, handleMouseMove, handleMouseUp, handleDblClick } = useCanvasMouseHandlers({
         stageRef,
-        eraser, isMouse, isEditing, isPanning,
+        eraser, isMouse, isEditing, isPanning, setIsEditing,
         drawingHandlers, eraserHandlers, selectionHandlers, textHandlers,
-        setCursor
+        setCursor, resetAllTools
     });
 
     // Infinite canvas
@@ -392,6 +392,8 @@ function Editor({ fileId, userId, fileData }) {
                 onPointerDown={ handleMouseDown }
                 onPointerMove={ handleMouseMove }
                 onPointerUp={ handleMouseUp }
+                onDblClick={ handleDblClick }
+                onDblTap={ handleDblClick }
             >
                 <Layer
                     name='grid'
@@ -445,11 +447,11 @@ function Editor({ fileId, userId, fileData }) {
                     ) }
                 </Layer>
             </Stage>
-            <textarea
+            <div
                 ref={ textareaRef }
-                className='hidden bg-transparent overflow-hidden resize-x absolute border border-gray-500 outline-none py-1 px-3 rounded-sm'
-                value={ editingText }
-                onChange={ handleTextChange }
+                contentEditable="true"
+                className='hidden bg-transparent overflow-hidden resize-none absolute border border-none outline-none py-1 px-3 rounded-sm'
+                onInput={ handleTextChange }
                 onBlur={ handleSaveText }
                 style={ {
                     fontFamily: textFont,
@@ -460,7 +462,7 @@ function Editor({ fileId, userId, fileData }) {
                     minHeight: '44px',
                 } }
                 rows={ 1 }
-            />
+            ></div>
             <ZoomControls stageRef={ stageRef } stageScale={ stageScale } setStageScale={ setStageScale } setStagePos={ setStagePos } />
         </div>
     );

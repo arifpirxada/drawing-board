@@ -13,13 +13,13 @@ export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFo
             emit('draw_shape', { room: fileId, id, userId, type: "text", text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top })
         }
         textareaRef.current.classList.add("hidden")
+        textareaRef.current.innerText = "";
         setEditingText('');
         setIsMouse(true);
-        autoResizeTextarea();
     }
 
-    const handleMouseDown = (e) => {
-        if (isEditing) {
+    const handleMouseDown = (e, forceEdit = false) => {
+        if (isEditing || forceEdit) {
             const pos = e.target.getStage().getPointerPosition();
             textareaRef.current.style.left = `${pos.x}px`
             textareaRef.current.style.top = `${pos.y}px`
@@ -33,29 +33,17 @@ export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFo
         }
     }
 
-    const autoResizeTextarea = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-        }
-    };
 
     const handleTextChange = (e) => {
-        setEditingText(e.target.value)
-        autoResizeTextarea();
+        setEditingText(e.target.innerText)
     }
 
     const textHandlers = {
-        onMouseDown: (e) => handleMouseDown(e)
+        onMouseDown: (e, forceEdit = false) => handleMouseDown(e, forceEdit)
     }
 
-    useEffect(() => {
-        console.log("Text: ", editingText)
-        console.log("Textarea value: ", textareaRef.current.value)
-    }, [editingText])
-
     return {
-        textHandlers,
+        textHandlers, editingText,
         handleTextChange, handleSaveText
     }
 }

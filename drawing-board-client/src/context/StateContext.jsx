@@ -51,6 +51,12 @@ export const StateProvider = ({ children }) => {
 
     const [shapes, setShapes] = useState([]);
 
+    const resetAllTools = () => {
+        setIsPen(false); setIsPanning(false); setEraser(false);
+        setLine(false); setArrowLine(false); setRectangle(false);
+        setTriangle(false); setCircle(false); setIsMouse(false);
+    };
+
     return (
         <StateContext.Provider value={ {
             isPen, setIsPen,
@@ -65,7 +71,8 @@ export const StateProvider = ({ children }) => {
             textFont, setTextFont, textFontSize, setTextFontSize,
             gridView, setGridView,
             shapes, setShapes,
-            isEditing, setIsEditing
+            isEditing, setIsEditing,
+            resetAllTools
         } }>
             { children }
         </StateContext.Provider>
