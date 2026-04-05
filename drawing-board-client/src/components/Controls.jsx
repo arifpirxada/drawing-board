@@ -263,8 +263,8 @@ function Controls({ fileId, userId }) {
                     </ToolBtn>
                 </div>
 
-                { uploading && <UploadLoading /> }
             </div>
+            { uploading && <UploadLoading /> }
         </>
     );
 }

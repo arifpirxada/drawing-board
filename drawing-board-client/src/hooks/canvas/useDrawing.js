@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { generateShapeId } from "../../utils/generateShapeId";
 
 export const useDrawing = ({
@@ -195,6 +195,10 @@ export const useDrawing = ({
         onMouseMove: handleMouseMove,
         onMouseUp: handleMouseUp
     }
+
+    useEffect(() => {
+        activeDrawingsRef.current = activeDrawings;
+    }, [activeDrawings]);
 
     return {
         drawingHandlers,

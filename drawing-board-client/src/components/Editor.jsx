@@ -39,7 +39,7 @@ function Editor({ fileId, userId, fileData }) {
 
     // .
 
-    const { drawingHandlers, activeDrawings, activeDrawingsRef } = useDrawing({
+    const { drawingHandlers, activeDrawings, activeDrawingsRef, setActiveDrawings } = useDrawing({
         isPen, line, rectangle, triangle, circle, arrowLine,
         color, bgColor, strokeColor, lineWidth, strokeWidth,
         shapes, setShapes, fileId, userId, emit
@@ -96,11 +96,12 @@ function Editor({ fileId, userId, fileData }) {
         return components;
     }, [gridView, stagePos.x, stagePos.y, stageScale])
 
-    // Socket events
-
     useEffect(() => {
-        activeDrawingsRef.current = activeDrawings;
-    }, [activeDrawings]);
+        console.log(shapes)
+        console.log("len: ", shapes.length)
+    }, [shapes])
+
+    // Socket events
 
     useEffect(() => {
 
@@ -335,44 +336,6 @@ function Editor({ fileId, userId, fileData }) {
             off('drag_shape', dragShape);
         };
     }, [on, off]);
-
-    // Load File Data
-
-    useEffect(() => {
-        setShapes([]);
-
-        if (!fileData) return
-
-        let loadedShapes = [];
-        if (fileData.lines) loadedShapes = [...loadedShapes, ...fileData.lines];
-        if (fileData.arrowLines) loadedShapes = [...loadedShapes, ...fileData.arrowLines];
-        if (fileData.rectangles) loadedShapes = [...loadedShapes, ...fileData.rectangles];
-        if (fileData.triangles) loadedShapes = [...loadedShapes, ...fileData.triangles];
-        if (fileData.circles) loadedShapes = [...loadedShapes, ...fileData.circles];
-        if (fileData.texts) loadedShapes = [...loadedShapes, ...fileData.texts];
-
-        if (fileData.images) {
-            const baseURL = import.meta.env.VITE_SERVER_URL;
-            if (baseURL) {
-                fileData.images.forEach((img) => {
-                    const image = new Image();
-                    const imageUrl = baseURL + "/uploads/" + img.name;
-
-                    image.onload = () => {
-                        setShapes((prev) => {
-                            const alreadyExists = prev.some((p) => p.id === img.id);
-                            if (alreadyExists) return prev;
-                            return [...prev, { type: "image", id: img.id, userId: img.userId, image, url: imageUrl, x: img.x, y: img.y, scaleX: img.scaleX, scaleY: img.scaleY, rotation: img.rotation }];
-                        });
-                    }
-
-                    image.src = imageUrl;
-                })
-            }
-        }
-
-        setShapes(prev => [...prev, ...loadedShapes]);
-    }, [fileData])
 
 
     return (
