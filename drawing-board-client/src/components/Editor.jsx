@@ -11,6 +11,7 @@ import { useTextEditing } from '../hooks/canvas/useTextEditing';
 import { useCanvasMouseHandlers } from '../hooks/canvas/useCanvasMouseHandlers';
 import { useDrag } from '../hooks/canvas/useDrag';
 import { useTransform } from '../hooks/canvas/useTransform';
+import EraserTailShape from './Filepage/EraserTailShape';
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 100;
 
@@ -39,12 +40,12 @@ function Editor({ fileId, userId, fileData }) {
 
     // .
 
-    const { drawingHandlers, activeDrawings, activeDrawingsRef, setActiveDrawings } = useDrawing({
+    const { drawingHandlers, activeDrawingsRef, setActiveDrawings } = useDrawing({
         isPen, line, rectangle, triangle, circle, arrowLine,
         color, bgColor, strokeColor, lineWidth, strokeWidth,
         shapes, setShapes, fileId, userId, emit
     });
-    const { eraserHandlers } = useEraser({ setShapes, fileId, emit });
+    const { eraserHandlers, eraserTailShape } = useEraser({ setShapes, fileId, emit });
     const { selectionHandlers, selectionRef, transformerRef, handleSelect, selectionRect, selectedShape, selectedShapes } = useSelection({ layerRef })
     const { textHandlers, handleTextChange, handleSaveText } = useTextEditing({
         setShapes, textareaRef, color, textFont, textFontSize,
@@ -403,6 +404,9 @@ function Editor({ fileId, userId, fileData }) {
                             } }
                         />
                     ) }
+                </Layer>
+                <Layer>
+                    {eraserTailShape && <EraserTailShape eraserTailShape={ eraserTailShape } />}
                 </Layer>
             </Stage>
             <div

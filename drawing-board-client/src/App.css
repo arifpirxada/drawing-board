@@ -11,7 +11,7 @@ body {
 }
 
 .cursor-eraser {
-  cursor: url('/eraser-icon.svg'), auto;
+  cursor: url('/eraser-icon.svg') 12 12, auto;
   background-color: transparent;
 }
 

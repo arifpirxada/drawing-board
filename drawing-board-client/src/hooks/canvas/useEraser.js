@@ -3,6 +3,25 @@ import { throttle } from "../../utils/throttle";
 
 export const useEraser = ({ setShapes, fileId, emit }) => {
     const [isErasing, setIsErasing] = useState(false);
+    const [eraserTailShape, setEraserTailShape] = useState(null); // 'eraser' | 'select' | 'draw'
+
+    const handleEraserTail = (pos) => {
+        if (eraserTailShape == null) {
+            const tail = {
+                points: [pos.x, pos.y]
+            };
+            setEraserTailShape(tail);
+        } else {
+            setEraserTailShape(prev => {
+                const newPoints = prev.points.concat(pos.x, pos.y);
+
+                return {
+                    ...prev,
+                    points: newPoints.slice(-40),
+                };
+            });
+        }
+    }
 
     const deleteAtPoint = (e) => {
         const target = e.target;
@@ -11,9 +30,9 @@ export const useEraser = ({ setShapes, fileId, emit }) => {
 
         const pointerPosition = stage.getPointerPosition();
 
-        // const shapes = stage.getAllIntersections(pointerPosition);
-        const shape = stage.getIntersection(pointerPosition);
+        handleEraserTail(pointerPosition);
 
+        const shape = stage.getIntersection(pointerPosition);
         if (!shape) return;
 
         const shapeId = shape.attrs.id;
@@ -32,8 +51,8 @@ export const useEraser = ({ setShapes, fileId, emit }) => {
         onMouseMove: (e) => {
             if (isErasing) throttledDelete(e);
         },
-        onMouseUp: () => { setIsErasing(false); }
+        onMouseUp: () => { setIsErasing(false); setEraserTailShape(null); }
     }
 
-    return { eraserHandlers }
+    return { eraserHandlers, eraserTailShape }
 }
