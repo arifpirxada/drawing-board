@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import FilePage from './pages/FilePage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Functionality from './components/Functionality';
+import Functionality from './components/Filepage/Functionality';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/partials/ProtectedRoute';
 import { SocketProvider } from './context/SocketContext';

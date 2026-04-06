@@ -1,8 +1,8 @@
-import Controls from "../components/Controls"
-import Editor from "../components/Editor"
+import Controls from "../components/Filepage/Controls"
+import Editor from "../components/Filepage/Editor"
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Options from "../components/Options";
+import Options from "../components/Filepage/Options";
 import fileApi from "../features/files/fileApi";
 import { useParams } from 'react-router-dom';
 import { useState } from "react";
@@ -10,11 +10,8 @@ import { useRef } from "react";
 import AnimatedLogo from "../components/partials/AnimatedLogo";
 import { useContext } from "react";
 import AuthContext from "../context/AuthContext";
-import useSocket from "../features/socketio/useSocket";
+import useSocket from "../hooks/socketio/useSocket";
 import SocketContext from "../context/SocketContext";
-import { set } from "react-hook-form";
-import socket from "../socket";
-
 
 
 function FilePage() {

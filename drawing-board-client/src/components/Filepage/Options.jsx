@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import StateContext from "../context/StateContext"
+import StateContext from "../../context/StateContext"
 
 /* ── Stroke thickness option ── */
 const StrokeSwatch = ({ width, active, onClick }) => (

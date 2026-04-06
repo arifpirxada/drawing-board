@@ -1,12 +1,10 @@
 import { useContext, useRef, useState } from "react"
-import StateContext from "../context/StateContext"
+import StateContext from "../../context/StateContext"
 import { useNavigate } from "react-router-dom";
-import useSocket from "../features/socketio/useSocket";
-import axios from "../lib/axios";
-import UploadLoading from "./Filepage/UploadLoading";
-import { useTextEditing } from "../hooks/canvas/useTextEditing";
+import useSocket from "../../hooks/socketio/useSocket";
+import axios from "../../lib/axios";
+import UploadLoading from "./UploadLoading";
 
-/* ── Tooltip wrapper ── */
 const Tip = ({ label, children }) => (
     <div className="tool-tip-wrap">
         { children }
@@ -14,7 +12,6 @@ const Tip = ({ label, children }) => (
     </div>
 );
 
-/* ── Single tool button ── */
 const ToolBtn = ({ active, onClick, label, children }) => (
     <Tip label={ label }>
         <button
