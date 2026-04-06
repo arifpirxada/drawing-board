@@ -23,8 +23,8 @@ export const useDrawing = ({
             setShapes(prev => [...prev, { id, userId, type: 'straight_line', points: [pos.x, pos.y], fill: strokeColor, strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'straight_line', points: [pos.x, pos.y], fill: color, strokeWidth })
         } else if (rectangle) {
-            setShapes(prev => [...prev, { id, userId, type: 'rectangle', x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
-            emit('draw_shape', { room: fileId, id, userId, type: 'rectangle', x: pos.x, y: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
+            setShapes(prev => [...prev, { id, userId, type: 'rectangle', x: pos.x, y: pos.y, startX: pos.x, startY: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
+            emit('draw_shape', { room: fileId, id, userId, type: 'rectangle', x: pos.x, y: pos.y, startX: pos.x, startY: pos.y, width: 0, height: 0, fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
         } else if (triangle) {
             setShapes(prev => [...prev, { id, userId, type: 'triangle', points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth }]);
             emit('draw_shape', { room: fileId, id, userId, type: 'triangle', points: [pos.x, pos.y, pos.x, pos.y, pos.x, pos.y], fill: bgColor, stroke: strokeColor, strokeWidth: strokeWidth })
@@ -79,13 +79,12 @@ export const useDrawing = ({
             setShapes((prevRects) =>
                 prevRects.map((rect) => {
                     if (rect.id === activeShapeId) {
-                        const startX = rect.x;
-                        const startY = rect.y;
+                        const x = Math.min(rect.startX, point.x);
+                        const y = Math.min(rect.startY, point.y);
+                        const width = Math.abs(point.x - rect.startX);
+                        const height = Math.abs(point.y - rect.startY);
 
-                        const width = point.x - startX;
-                        const height = point.y - startY;
-
-                        return { ...rect, width, height }
+                        return { ...rect, x, y, width, height }
                     } else {
                         return rect;
                     }

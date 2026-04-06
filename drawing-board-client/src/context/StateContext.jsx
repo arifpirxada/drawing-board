@@ -16,7 +16,7 @@ export const StateProvider = ({ children }) => {
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [color, setColor] = useState("#ffffff");
     const [strokeColor, setStrokeColor] = useState("#ffffff");
-    const [bgColor, setBgColor] = useState("#ffffff00");
+    const [bgColor, setBgColor] = useState("transparent");
 
     // Eraser
     const [eraser, setEraser] = useState(false);
