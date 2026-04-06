@@ -94,14 +94,12 @@ function Controls({ fileId, userId }) {
         if (eraser && eraserRef.current) eraserRef.current.classList.remove('hidden');
     };
 
-    /* Actual panel widths — tab offset must match */
     const PANEL_EXPANDED = 168;
     const PANEL_COLLAPSED = 52;
     const panelWidth = collapsed ? PANEL_COLLAPSED : PANEL_EXPANDED;
 
     return (
         <>
-
             <button
                 className="tool-panel__collapse-tab"
                 style={ { left: `${12 + panelWidth}px` } }
@@ -125,7 +123,7 @@ function Controls({ fileId, userId }) {
                 </svg>
             </button>
 
-            {/* ── Main tool panel ── */ }
+            {/* Main tool panel */ }
             <div
                 onMouseEnter={ handleMouseEnter }
                 onMouseLeave={ handleMouseLeave }
@@ -151,21 +149,21 @@ function Controls({ fileId, userId }) {
                         <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
                             <path d="M9 2.594L9 28.156l1.656-1.375 4.031-3.375 2.031 4.031.438.907.906-.47 3.094-1.593.875-.438-.438-.907-1.843-3.625 5.062-.625 2.031-.25-1.437-1.437L10.719 4.281z M11 7.438l11.563 11.53-4.5.532-1.406.187.656 1.282 2.063 4L17 25.657l-2.156-4.313-.594-1.125-.969.813L11 23.844z" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Select</span> }
+                        { !collapsed && <span className="tool-btn__label">Select (s)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ isPen } onClick={ () => changeControl("pen") } label="Pen">
                         <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
                             <path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7.8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3z" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Pen</span> }
+                        { !collapsed && <span className="tool-btn__label">Pen (d)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ isPanning } onClick={ () => changeControl("panning") } label="Pan">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5M14 5.5a1.5 1.5 0 0 1 3 0v6.5M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1-6 6h-2h.208a6 6 0 0 1-5.012-2.7 69.74 69.74 0 0 1-.196-.3c-.312-.479-1.407-2.388-3.286-5.728a1.5 1.5 0 0 1 .536-2.022 1.867 1.867 0 0 1 2.28.28l1.47 1.47" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Pan</span> }
+                        { !collapsed && <span className="tool-btn__label">Pan (space + move)</span> }
                     </ToolBtn>
                 </div>
 
@@ -177,7 +175,7 @@ function Controls({ fileId, userId }) {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 20H7L3 16l10-10 7 7-2.5 2.5" /><path d="M6.0001 10.0001L4 12" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Eraser</span> }
+                        { !collapsed && <span className="tool-btn__label">Eraser (e)</span> }
                     </ToolBtn>
                 </div>
 
@@ -189,27 +187,27 @@ function Controls({ fileId, userId }) {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12" /><line x1="15" y1="16" x2="19" y2="12" /><line x1="15" y1="8" x2="19" y2="12" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Arrow</span> }
+                        { !collapsed && <span className="tool-btn__label">Arrow (a)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ line } onClick={ () => changeControl("line") } label="Line">
                         <svg width="16" height="16" viewBox="0 0 20 20"><line x1="2" y1="2" x2="18" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                        { !collapsed && <span className="tool-btn__label">Line</span> }
+                        { !collapsed && <span className="tool-btn__label">Line (w)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ rectangle } onClick={ () => changeControl("rectangle") } label="Rectangle">
                         <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" rx="1" /></svg>
-                        { !collapsed && <span className="tool-btn__label">Rectangle</span> }
+                        { !collapsed && <span className="tool-btn__label">Rectangle (r)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ triangle } onClick={ () => changeControl("triangle") } label="Triangle">
                         <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1 15,15 1,15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>
-                        { !collapsed && <span className="tool-btn__label">Triangle</span> }
+                        { !collapsed && <span className="tool-btn__label">Triangle (t)</span> }
                     </ToolBtn>
 
                     <ToolBtn active={ circle } onClick={ () => changeControl("circle") } label="Circle">
                         <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
-                        { !collapsed && <span className="tool-btn__label">Circle</span> }
+                        { !collapsed && <span className="tool-btn__label">Circle (c)</span> }
                     </ToolBtn>
                 </div>
 
@@ -235,7 +233,7 @@ function Controls({ fileId, userId }) {
                             <line x1="6.9" y1="15" x2="13.8" y2="15" /><line x1="10.2" y1="6.3" x2="16" y2="20" />
                             <polyline points="5 20 11 4 13 4 20 20" />
                         </svg>
-                        { !collapsed && <span className="tool-btn__label">Text</span> }
+                        { !collapsed && <span className="tool-btn__label">Text (Dbl tap)</span> }
                     </ToolBtn>
                 </div>
 

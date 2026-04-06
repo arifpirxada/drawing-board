@@ -15,11 +15,12 @@ export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFo
         textareaRef.current.classList.add("hidden")
         textareaRef.current.innerText = "";
         setEditingText('');
+        setIsEditing(false)
         setIsMouse(true);
     }
 
     const handleMouseDown = (e, forceEdit = false) => {
-        if (isEditing || forceEdit) {
+        if ((isEditing && editingText === '') || forceEdit) {
             const pos = e.target.getStage().getPointerPosition();
             textareaRef.current.style.left = `${pos.x}px`
             textareaRef.current.style.top = `${pos.y}px`
@@ -27,7 +28,6 @@ export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFo
             setTimeout(() => {
                 textareaRef.current.focus()
             }, 10)
-            setIsEditing(false)
         } else if (editingText !== '') {
             handleSaveText();
         }

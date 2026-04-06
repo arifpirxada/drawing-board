@@ -12,11 +12,12 @@ import { useContext } from "react";
 import AuthContext from "../context/AuthContext";
 import useSocket from "../hooks/socketio/useSocket";
 import SocketContext from "../context/SocketContext";
+import { useKeyboardShortcuts } from "../hooks/ui/useKeyboardShortcuts";
+import StateContext from "../context/StateContext";
 
 
 function FilePage() {
     const navigate = useNavigate();
-    const location = useLocation();
     const { id: fileId } = useParams();
 
     const [file, setFile] = useState(null);
@@ -24,34 +25,17 @@ function FilePage() {
 
     const { user } = useContext(AuthContext);
     const { setConnectedUsers } = useContext(SocketContext);
+    const { resetAllTools,
+        setIsMouse, setIsPen, setEraser, setArrowLine, setLine, setRectangle, setTriangle, setCircle, isEditing
+    } = useContext(StateContext);
 
     const { emit, on, off } = useSocket();
 
-    useEffect(() => {
-        // for view modal
-        const handleKeyDown = (event) => {
-            if (event.ctrlKey && event.key === 'q') {
-                if (location.pathname == "/view") {
-                    navigate("/")
-                } else {
-                    navigate("/view")
-                }
-            } else if (event.ctrlKey && event.shiftKey && event.key == 'X') {
-                if (location.pathname == "/view/chat") {
-                    navigate("/")
-                } else {
-                    navigate("/view/chat")
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [location, navigate]);
-
+    // Keyboard Shortcuts
+    useKeyboardShortcuts({
+        resetAllTools,
+        setIsMouse, setIsPen, setEraser, setArrowLine, setLine, setRectangle, setTriangle, setCircle, isEditing
+    });
 
     // Fetch file data
 

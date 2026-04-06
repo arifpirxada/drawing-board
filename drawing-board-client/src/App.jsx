@@ -22,8 +22,6 @@ function App() {
             <Routes>
               <Route path="/" element={ <Home /> } />
               <Route path="/files/:id" element={ <ProtectedRoute><FilePage /></ProtectedRoute> } />
-              <Route path="/files/:id/view" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
-              <Route path="/files/:id/view/chat" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
               <Route path="/files/:id/collaborators" element={ <ProtectedRoute><FilePage /><Functionality /></ProtectedRoute> } />
               <Route path="/login" element={ <Login /> } />
               <Route path="/signup" element={ <Signup /> } />

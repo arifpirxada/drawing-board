@@ -12,6 +12,7 @@ export const StateProvider = ({ children }) => {
     const [isPen, setIsPen] = useState(true);
     const [isPanning, setIsPanning] = useState(false);
 
+    // Options
     const [lineWidth, setLineWidth] = useState(5);
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [color, setColor] = useState("#ffffff");
@@ -46,8 +47,6 @@ export const StateProvider = ({ children }) => {
     }, [gridView]);
 
     // ******* Shapes *********
-    // const [texts, setTexts] = useState([]);
-    // const [images, setImages] = useState([]);
 
     const [shapes, setShapes] = useState([]);
 
