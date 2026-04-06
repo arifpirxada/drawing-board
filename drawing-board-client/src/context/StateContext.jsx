@@ -14,8 +14,8 @@ export const StateProvider = ({ children }) => {
 
     const [lineWidth, setLineWidth] = useState(5);
     const [strokeWidth, setStrokeWidth] = useState(2);
-    const [color, setColor] = useState("white");
-    const [strokeColor, setStrokeColor] = useState("white");
+    const [color, setColor] = useState("#ffffff");
+    const [strokeColor, setStrokeColor] = useState("#ffffff");
     const [bgColor, setBgColor] = useState("#ffffff00");
 
     // Eraser

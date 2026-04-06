@@ -50,8 +50,8 @@ function Options() {
                 <div className="options-group">
                     <span className="options-label">Color</span>
                     <div className="options-row">
-                        <ColorDot c="#ffffff" active={ color === "white" } onClick={ () => setColor("white") } />
-                        <ColorDot c="#facc15" active={ color === "yellow" } onClick={ () => setColor("yellow") } />
+                        <ColorDot c="#ffffff" active={ color === "#ffffff" } onClick={ () => setColor("#ffffff") } />
+                        <ColorDot c="#facc15" active={ color === "#ffff00" } onClick={ () => setColor("#ffff00") } />
                         <div className="color-picker-wrap">
                             <input type="color" value={ color } id="color-option-pen"
                                 className="color-picker-input"
@@ -142,8 +142,8 @@ function Options() {
                 <div className="options-group">
                     <span className="options-label">Color</span>
                     <div className="options-row">
-                        <ColorDot c="#ffffff" active={ color === "white" } onClick={ () => setColor("white") } />
-                        <ColorDot c="#facc15" active={ color === "yellow" } onClick={ () => setColor("yellow") } />
+                        <ColorDot c="#ffffff" active={ color === "#ffffff" } onClick={ () => setColor("#ffffff") } />
+                        <ColorDot c="#facc15" active={ color === "#ffff00" } onClick={ () => setColor("#ffff00") } />
                         <div className="color-picker-wrap">
                             <input type="color" value={ color } id="color-option-text"
                                 className="color-picker-input"
