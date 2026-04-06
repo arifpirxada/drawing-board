@@ -15,7 +15,6 @@ class DeleteShapesHandler(BaseHandler):
                 image_name = shape.get("name")
                 if image_name is None:
                     return
-                print("deleting Image...")
                 self.delete_image(image_name)
 
 
