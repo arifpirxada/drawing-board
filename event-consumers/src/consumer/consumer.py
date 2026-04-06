@@ -60,7 +60,7 @@ class KafkaConsumer:
 
         try:
             handler = get_handler(event_type)
-            handler.handle_event(event_type, msg, file_data)
+            handler.handle_event(msg, file_data)
         except Exception as e:
             shape_id = msg.get("id", "unknown")
             logger.error(f"Error processing {event_type} ({shape_id}): {e}", exc_info=True)
@@ -79,6 +79,7 @@ class KafkaConsumer:
                     return
 
                 file_data = file.data if isinstance(file.data, dict) else {}
+                file_data.setdefault("shapes", [])
 
                 for msg in messages:
                     self.process_message(msg, file_data)

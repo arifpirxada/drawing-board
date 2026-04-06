@@ -27,9 +27,6 @@ async def draw_shape(sid, data):
         skip_sid=sid,
     )
 
-    data["event_type"] = "draw_shape"
-    await safe_kafka_send("drawing_events", data)
-
 @sio.event
 async def update_shape(sid, data):
     room = data.get("room")
@@ -40,9 +37,6 @@ async def update_shape(sid, data):
         room=room,
         skip_sid=sid,
     )
-    
-    data["event_type"] = "update_shape"
-    await safe_kafka_send("drawing_events", data)
 
 @sio.event
 async def delete_shapes(sid, data):

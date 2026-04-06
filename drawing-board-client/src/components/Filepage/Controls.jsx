@@ -77,6 +77,12 @@ function Controls({ fileId, userId }) {
             image.onload = () => setShapes(prev => [...prev, { type: "image", id, userId, image, url: imageUrl }]);
             image.src = imageUrl;
             emit('draw_shape', { room: fileId, userId, id, type: "image", name: imageName });
+            emit('drawing_complete', {
+                room: fileId, userId,
+                shape: {
+                    id, type: "image", name: imageName
+                }
+            });
         } catch (err) {
             console.error('Upload failed:', err);
             alert('Failed to upload image. Please try again.');
@@ -227,7 +233,7 @@ function Controls({ fileId, userId }) {
                         </label>
                     </Tip>
 
-                    <ToolBtn active={isEditing} onClick={ addText } label="Text">
+                    <ToolBtn active={ isEditing } onClick={ addText } label="Text">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="4" y1="20" x2="7" y2="20" /><line x1="14" y1="20" x2="21" y2="20" />
                             <line x1="6.9" y1="15" x2="13.8" y2="15" /><line x1="10.2" y1="6.3" x2="16" y2="20" />
