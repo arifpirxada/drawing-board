@@ -47,7 +47,7 @@ export const useDrawing = ({
             setShapes((prevLines) =>
                 prevLines.map((line) => {
                     if (line.id === activeShapeId) {
-                        return { ...line, points: line.points.concat([point.x, point.y]) }
+                        return { ...line, points: line.points?.concat([point.x, point.y]) }
                     } else {
                         return line;
                     }

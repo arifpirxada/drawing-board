@@ -12,8 +12,8 @@ import { useCanvasMouseHandlers } from '../hooks/canvas/useCanvasMouseHandlers';
 import { useDrag } from '../hooks/canvas/useDrag';
 import { useTransform } from '../hooks/canvas/useTransform';
 import EraserTailShape from './Filepage/EraserTailShape';
-const CELL_WIDTH = 100;
-const CELL_HEIGHT = 100;
+const CELL_WIDTH = 70;
+const CELL_HEIGHT = 70;
 
 function Editor({ fileId, userId, fileData }) {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });

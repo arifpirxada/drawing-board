@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { throttle } from "../../utils/throttle";
 
 export const useEraser = ({ setShapes, fileId, emit }) => {
     const [isErasing, setIsErasing] = useState(false);
     const [eraserTailShape, setEraserTailShape] = useState(null); // 'eraser' | 'select' | 'draw'
+    const deletedShapeIdsRef = useRef(new Set());
 
     const handleEraserTail = (pos) => {
         if (eraserTailShape == null) {
@@ -23,35 +24,47 @@ export const useEraser = ({ setShapes, fileId, emit }) => {
         }
     }
 
-    const deleteAtPoint = (e) => {
-        const target = e.target;
-        if (!target) return;
-        const stage = target.getStage();
+    const deleteMarkedShapes = () => {
+        const ids = Array.from(deletedShapeIdsRef.current);
+        setShapes(prev => prev.filter((shape) => !deletedShapeIdsRef.current.has(shape.id)));
 
+        emit('delete_shapes', { room: fileId, ids });
+        deletedShapeIdsRef.current.clear();
+    };
+
+    const markShapeAsDeleted = (e) => {
+        const shape = e.target;
+        if (!shape) return;
+
+        const stage = shape.getStage();
         const pointerPosition = stage.getPointerPosition();
-
         handleEraserTail(pointerPosition);
 
-        const shape = stage.getIntersection(pointerPosition);
-        if (!shape) return;
+        if (!shape.attrs?.id) return;
 
         const shapeId = shape.attrs.id;
 
-        setShapes((prev) => prev.filter(shape => shape.id !== shapeId));
-        emit('delete_shape', { room: fileId, id: shapeId });
+        shape.opacity(0.1);
+
+        shape.getLayer().batchDraw();
+        deletedShapeIdsRef.current.add(shapeId);
     };
 
-    const throttledDelete = useMemo(() => throttle(deleteAtPoint, 16), [deleteAtPoint]);
+    const throttledDelete = useMemo(() => throttle(markShapeAsDeleted, 16), [markShapeAsDeleted]);
 
     const eraserHandlers = {
         onMouseDown: (e) => {
             setIsErasing(true);
-            deleteAtPoint(e);
+            markShapeAsDeleted(e);
         },
         onMouseMove: (e) => {
             if (isErasing) throttledDelete(e);
         },
-        onMouseUp: () => { setIsErasing(false); setEraserTailShape(null); }
+        onMouseUp: () => {
+            deleteMarkedShapes();
+            setIsErasing(false);
+            setEraserTailShape(null);
+        }
     }
 
     return { eraserHandlers, eraserTailShape }
