@@ -76,7 +76,7 @@ function Controls({ fileId, userId }) {
             const image = new Image();
             image.onload = () => setShapes(prev => [...prev, { type: "image", id, userId, image, url: imageUrl }]);
             image.src = imageUrl;
-            emit('add_image', { room: fileId, userId, id, name: imageName });
+            emit('draw_shape', { room: fileId, userId, id, type: "image", name: imageName });
         } catch (err) {
             console.error('Upload failed:', err);
             alert('Failed to upload image. Please try again.');

@@ -1,4 +1,4 @@
-import { useState, useRef, useContext, useEffect, useMemo } from 'react';
+import { useState, useRef, useContext, useMemo } from 'react';
 import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import StateContext from '../../context/StateContext';
 import useSocket from '../../hooks/socketio/useSocket';
@@ -12,6 +12,7 @@ import { useCanvasMouseHandlers } from '../../hooks/canvas/useCanvasMouseHandler
 import { useDrag } from '../../hooks/canvas/useDrag';
 import { useTransform } from '../../hooks/canvas/useTransform';
 import EraserTailShape from './EraserTailShape';
+import { useRemoteDrawingEvents } from '../../hooks/socketio/useRemoteDrawingEvents';
 const CELL_WIDTH = 70;
 const CELL_HEIGHT = 70;
 
@@ -83,7 +84,7 @@ function Editor({ fileId, userId, fileData }) {
                 components.push(
                     <Rect
                         key={ `${x}-${y}` }
-                        x={ x }
+                        x={ x } 
                         y={ y }
                         width={ CELL_WIDTH }
                         height={ CELL_HEIGHT }
@@ -97,241 +98,11 @@ function Editor({ fileId, userId, fileData }) {
         return components;
     }, [gridView, stagePos.x, stagePos.y, stageScale])
 
-    // Socket events
 
-    useEffect(() => {
+    // Handle remote incomming events
 
-        const updateLine = (data) => {
-            if (data.userId === userId) return;
+    useRemoteDrawingEvents({ userId, activeDrawingsRef, setShapes, setActiveDrawings, on, off });
 
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-
-            if (targetShapeId === data.id) {
-                setShapes(prevLines =>
-                    prevLines.map(line =>
-                        line.id === data.id
-                            ? { ...line, points: line.points.concat([data.points.x, data.points.y]) }
-                            : line
-                    )
-                );
-            }
-        }
-
-
-        const updateStraightLine = (data) => {
-            if (data.userId === userId) return;
-
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-            if (targetShapeId !== data.id) return;
-
-            setShapes(prevLines =>
-                prevLines.map((line) => {
-                    if (line.id === data.id) {
-                        return { ...line, points: [line.points[0], line.points[1], data.points.x, data.points.y] }
-                    } else {
-                        return line;
-                    }
-                })
-            )
-        }
-
-        const updateRectangle = (data) => {
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-            if (targetShapeId !== data.id) return;
-
-            setShapes((prevRects) =>
-                prevRects.map((rect) => {
-                    if (rect.id === data.id) {
-                        const width = data.points.x - rect.x;
-                        const height = data.points.y - rect.y;
-
-                        return { ...rect, width, height }
-                    } else {
-                        return rect;
-                    }
-                })
-            )
-        }
-
-        const updateTriangle = (data) => {
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-            if (targetShapeId !== data.id) return;
-
-            setShapes((prevTriangles) =>
-                prevTriangles.map((triangle) => {
-                    if (triangle.id === data.id) {
-                        const startX = triangle.points[0];
-                        const startY = triangle.points[1];
-
-                        const x = data.points.x - startX;
-                        const y = data.points.y - startY;
-
-                        const updatedTriangle = { ...triangle, points: [...triangle.points] };
-
-                        updatedTriangle.points[3] = updatedTriangle.points[1] + y;
-                        updatedTriangle.points[4] = updatedTriangle.points[0] + x;
-                        updatedTriangle.points[5] = updatedTriangle.points[1] + y;
-
-                        return updatedTriangle;
-                    } else {
-                        return triangle;
-                    }
-                })
-            )
-        }
-
-        const updateCircle = (data) => {
-            if (data.userId === userId) return;
-
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-            if (targetShapeId !== data.id) return;
-
-            setShapes((prevCircles) =>
-                prevCircles.map((circle) => {
-                    if (circle.id === data.id) {
-                        const dx = data.points.x - circle.x;
-                        const dy = data.points.y - circle.y;
-
-                        const newRadius = Math.sqrt(dx * dx + dy * dy);
-
-                        return { ...circle, radius: newRadius }
-                    } else {
-                        return circle;
-                    }
-                })
-            )
-        }
-
-        const updateArrowLine = (data) => {
-            if (data.userId === userId) return;
-
-            const targetShapeId = activeDrawingsRef.current.get(data.userId);
-            if (targetShapeId !== data.id) return;
-
-            setShapes((prevArrowLines) =>
-                prevArrowLines.map((arrowLine) => {
-                    if (arrowLine.id === data.id) {
-                        return { ...arrowLine, points: [arrowLine.points[0], arrowLine.points[1], data.points.x, data.points.y] }
-                    } else {
-                        return arrowLine;
-                    }
-                })
-            )
-        }
-
-        // Image
-
-        const addImage = (data) => {
-            const baseURL = import.meta.env.VITE_SERVER_URL
-            if (!baseURL) return;
-
-            const url = baseURL + "/uploads/" + data.name;
-
-            const image = new Image();
-            const imageData = {
-                type: "image",
-                id: data.id,
-                userId: data.userId,
-                image,
-                src: url
-            };
-
-            image.onload = function () {
-                setShapes((prev) => [...prev, imageData]);
-            };
-            image.src = url;
-        }
-
-        // Other
-
-        const drawingComplete = (data) => {
-            if (data.userId !== userId) {
-                // Remove from active drawings
-                setActiveDrawings(prev => {
-                    const updated = new Map(prev);
-                    updated.delete(data.userId);
-                    return updated;
-                });
-            }
-        }
-
-        const transformShape = (data) => {
-            setShapes(prev => prev.map(shape =>
-                shape.id === data.id
-                    ? { ...shape, scaleX: data.scaleX, scaleY: data.scaleY, rotation: data.rotation, x: data.x, y: data.y }
-                    : shape
-            ));
-        }
-
-        const dragShape = (data) => {
-            setShapes(prev => prev.map(shape =>
-                shape.id === data.id
-                    ? { ...shape, x: data.x, y: data.y }
-                    : shape
-            ));
-        }
-
-        const handleDraw = (data) => {
-            if (data.userId === userId) return;
-            setActiveDrawings(prev => new Map(prev).set(data.userId, data.id));
-
-            if (data.type == "image") {
-                addImage(data);
-            } else {
-                setShapes((prev) => [...prev, data]);
-            }
-        }
-
-        const handleUpdate = (data) => {
-            if (data.userId === userId) return;
-
-            switch (data.type) {
-                case "line":
-                    updateLine(data);
-                    break;
-                case "straight_line":
-                    updateStraightLine(data)
-                    break;
-                case "rectangle":
-                    updateRectangle(data);
-                    break;
-                case "triangle":
-                    updateTriangle(data);
-                    break;
-                case "circle":
-                    updateCircle(data);
-                    break;
-                case "arrow_line":
-                    updateArrowLine(data);
-
-            }
-        }
-
-        const handleDelete = (data) => {
-            if (data.userId === userId) return;
-
-            setShapes((prev) =>
-                prev.filter((item) => item.id != data.id)
-            );
-        }
-
-        // Drawing events
-        on('draw_shape', handleDraw);
-        on('update_shape', handleUpdate);
-        on('delete_shape', handleDelete);
-
-
-        // Other
-        on('drawing_complete', drawingComplete)
-        on('transform_shape', transformShape);
-        on('drag_shape', dragShape);
-
-        return () => {
-            off('drawing_complete', drawingComplete)
-            off('transform_shape', transformShape);
-            off('drag_shape', dragShape);
-        };
-    }, [on, off]);
 
 
     return (
