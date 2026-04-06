@@ -13,13 +13,12 @@ import { useDrag } from '../../hooks/canvas/useDrag';
 import { useTransform } from '../../hooks/canvas/useTransform';
 import EraserTailShape from './EraserTailShape';
 import { useRemoteDrawingEvents } from '../../hooks/socketio/useRemoteDrawingEvents';
-const CELL_WIDTH = 70;
-const CELL_HEIGHT = 70;
+import { useGridComponents } from '../../hooks/canvas/useGridComponents.jsx';
+
 
 function Editor({ fileId, userId, fileData }) {
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
-
 
     const [cursor, setCursor] = useState('cursor-crosshair')
     const stageRef = useRef(null);
@@ -39,7 +38,7 @@ function Editor({ fileId, userId, fileData }) {
 
     const { emit, on, off } = useSocket();
 
-    // .
+    // Hooks
 
     const { drawingHandlers, activeDrawingsRef, setActiveDrawings } = useDrawing({
         isPen, line, rectangle, triangle, circle, arrowLine,
@@ -63,47 +62,10 @@ function Editor({ fileId, userId, fileData }) {
     });
 
     // Infinite canvas
-
-    const gridComponents = useMemo(() => {
-
-        // Calculate buffer based on zoom level
-        const bufferMultiplier = Math.min(1.6, 1.2 / stageScale);
-        const bufferWidth = window.innerWidth * bufferMultiplier;
-        const bufferHeight = window.innerHeight * bufferMultiplier;
-
-        // // Calculate visible area bounds
-        const startX = Math.floor((-stagePos.x - bufferWidth) / CELL_WIDTH) * CELL_WIDTH;
-        const endX = Math.floor((-stagePos.x + bufferWidth * 2) / CELL_WIDTH) * CELL_WIDTH;
-        const startY = Math.floor((-stagePos.y - bufferHeight) / CELL_HEIGHT) * CELL_HEIGHT;
-        const endY = Math.floor((-stagePos.y + bufferHeight * 2) / CELL_HEIGHT) * CELL_HEIGHT;
-
-        // Generate only visible grid components
-        const components = [];
-        for (let x = startX; x < endX; x += CELL_WIDTH) {
-            for (let y = startY; y < endY; y += CELL_HEIGHT) {
-                components.push(
-                    <Rect
-                        key={ `${x}-${y}` }
-                        x={ x } 
-                        y={ y }
-                        width={ CELL_WIDTH }
-                        height={ CELL_HEIGHT }
-                        fill="#121212"
-                        stroke="#1E1E1E"
-                        strokeWidth={ gridView ? 1 : 0 }
-                    />
-                );
-            }
-        }
-        return components;
-    }, [gridView, stagePos.x, stagePos.y, stageScale])
-
+    const gridComponents = useGridComponents({ stagePos, stageScale, gridView })
 
     // Handle remote incomming events
-
     useRemoteDrawingEvents({ userId, activeDrawingsRef, setShapes, setActiveDrawings, on, off });
-
-
 
     return (
         <div className={ `${cursor} canvas-container overflow-x-hidden w-screen h-screen relative` }>
@@ -177,7 +139,7 @@ function Editor({ fileId, userId, fileData }) {
                     ) }
                 </Layer>
                 <Layer>
-                    {eraserTailShape && <EraserTailShape eraserTailShape={ eraserTailShape } />}
+                    { eraserTailShape && <EraserTailShape eraserTailShape={ eraserTailShape } /> }
                 </Layer>
             </Stage>
             <div
