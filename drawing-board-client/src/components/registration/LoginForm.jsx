@@ -212,7 +212,7 @@ function LoginForm() {
               >
                 {submitting ? (
                   <>
-                    <span className="auth-spinner" aria-hidden="true" />
+                    <span className="auth-spinner" aria-hidden="true" />&nbsp;
                     Authenticating…
                   </>
                 ) : (
@@ -222,7 +222,7 @@ function LoginForm() {
 
               {/* Footer link */}
               <p className="auth-switch">
-                Not a member?{" "}
+                Not a member?{" "}&nbsp;
                 <Link to="/signup" className="auth-switch__link" id="goto-signup-link">
                   Create an account
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">

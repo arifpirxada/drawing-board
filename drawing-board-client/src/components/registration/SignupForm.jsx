@@ -236,7 +236,7 @@ function SignupForm() {
                 >
                   {submitting ? (
                     <>
-                      <span className="auth-spinner" aria-hidden="true" />
+                      <span className="auth-spinner" aria-hidden="true" />&nbsp;
                       Creating account…
                     </>
                   ) : (
