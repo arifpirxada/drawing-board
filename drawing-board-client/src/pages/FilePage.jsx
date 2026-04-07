@@ -26,7 +26,8 @@ function FilePage() {
     const { user } = useContext(AuthContext);
     const { setConnectedUsers } = useContext(SocketContext);
     const { resetAllTools,
-        setIsMouse, setIsPen, setEraser, setArrowLine, setLine, setRectangle, setTriangle, setCircle, isEditing
+        setIsMouse, setIsPen, setEraser, setArrowLine, setLine,
+        setRectangle, setTriangle, setCircle, isEditing, setIsPanning
     } = useContext(StateContext);
 
     const { emit, on, off } = useSocket();
@@ -34,7 +35,8 @@ function FilePage() {
     // Keyboard Shortcuts
     useKeyboardShortcuts({
         resetAllTools,
-        setIsMouse, setIsPen, setEraser, setArrowLine, setLine, setRectangle, setTriangle, setCircle, isEditing
+        setIsMouse, setIsPen, setEraser, setArrowLine, setLine,
+        setRectangle, setTriangle, setCircle, isEditing, setIsPanning
     });
 
     // Fetch file data
