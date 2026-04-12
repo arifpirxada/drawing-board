@@ -1,4 +1,4 @@
-import { useState, useRef, useContext, useMemo } from 'react';
+import { useState, useRef, useContext, useMemo, useEffect } from 'react';
 import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import StateContext from '../../context/StateContext';
 import useSocket from '../../hooks/socketio/useSocket';
@@ -66,6 +66,45 @@ function Editor({ fileId, userId, fileData }) {
 
     // Handle remote incomming events
     useRemoteDrawingEvents({ userId, activeDrawingsRef, setShapes, setActiveDrawings, on, off });
+
+    useEffect(() => {
+        if (!fileData?.shapes) return;
+        let cancelled = false;
+
+        const nonImageShapes = fileData.shapes.filter(s => s.type !== 'image');
+        const imageShapes = fileData.shapes.filter(s => s.type === 'image');
+
+        setShapes(nonImageShapes);
+
+        if (imageShapes.length === 0) return;
+
+        const baseURL = import.meta.env.VITE_SERVER_URL;
+        if (!baseURL) {
+            console.error("No base url");
+            return;
+        }
+
+        imageShapes.forEach(shape => {
+            const image = new Image();
+            const imageUrl = `${baseURL}/uploads/${shape.name}`;
+
+            image.onload = () => {
+                if (cancelled) return;
+                setShapes(prev => {
+                    const filtered = prev.filter(s => s.id !== shape.id);
+
+                    return [
+                        ...filtered,
+                        { id: shape.id, ...shape, image, url: imageUrl },
+                    ];
+                });
+            };
+
+            image.onerror = () => console.error(`Failed to load image: ${imageUrl}`);
+            image.src = imageUrl;
+        });
+        return () => { cancelled = true; };
+    }, [fileData]);
 
     return (
         <div className={ `${cursor} canvas-container overflow-x-hidden w-screen h-screen relative` }>

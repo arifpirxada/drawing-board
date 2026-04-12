@@ -10,7 +10,17 @@ export const useTextEditing = ({ setShapes, textareaRef, color, textFont, textFo
             const rect = textareaRef.current.getBoundingClientRect();
             setShapes(prev => [...prev, { type: "text", id, userId, text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top }]);
 
-            emit('draw_shape', { room: fileId, id, userId, type: "text", text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top })
+            emit('draw_shape', { room: fileId, id, userId, type: "text", text: editingText, color, font: textFont, fontSize: textFontSize, left: rect.left, top: rect.top });
+            emit('drawing_complete', { 
+                room: fileId,
+                userId, 
+                shape: {
+                    id, type: "text", 
+                    text: editingText, 
+                    color, font: textFont, fontSize: textFontSize, 
+                    left: rect.left, top: rect.top
+                }
+             });
         }
         textareaRef.current.classList.add("hidden")
         textareaRef.current.innerText = "";
